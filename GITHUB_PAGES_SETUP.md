@@ -40,20 +40,20 @@ For production use, consider setting up branch protection rules:
 
 - **Trigger**: Push to `main` branch with changes in `docs/` folder
 - **Target**: https://mattleibow.github.io/GitHubStagingPages
-- **Workflow**: `.github/workflows/deploy-docs-main.yml`
+- **Workflow**: `.github/workflows/docs-deploy-main.yml`
 
 ### PR Staging
 
 - **Trigger**: Pull request with changes in `docs/` folder
 - **Target**: https://mattleibow.github.io/GitHubStagingPages/staging/[pr-number]
-- **Workflow**: `.github/workflows/deploy-docs-staging-pr.yml`
+- **Workflow**: `.github/workflows/docs-deploy-staging-pr.yml`
 - **Auto-comment**: Adds a comment to the PR with the staging URL
 
 ### Cleanup
 
 - **Trigger**: Pull request closed
 - **Action**: Removes staging directory from `gh-pages` branch
-- **Workflow**: `.github/workflows/deploy-docs-staging-pr-cleanup.yml`
+- **Workflow**: `.github/workflows/docs-deploy-staging-pr-cleanup.yml`
 
 ## Testing the Setup
 
@@ -145,4 +145,4 @@ Create custom layouts in `docs/_layouts/` directory.
 
 ## Automatic Workflow Synchronization
 
-This repository automatically ensures that the `deploy-docs-live.yml` workflow is available in the gh-pages branch. When the main documentation is deployed, the workflow file is copied to gh-pages, enabling direct pushes to gh-pages to trigger GitHub Pages deployment automatically. This ensures seamless deployment whether changes come from the main branch or are pushed directly to gh-pages.
+This repository automatically ensures that the `docs-go-live.yml` workflow is available in the gh-pages branch. When the main documentation is deployed, the workflow file is copied to gh-pages, enabling direct pushes to gh-pages to trigger GitHub Pages deployment automatically. This ensures seamless deployment whether changes come from the main branch or are pushed directly to gh-pages.

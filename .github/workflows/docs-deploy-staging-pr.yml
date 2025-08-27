@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'docs/**'
-      - '.github/workflows/deploy-docs-staging-pr.yml'
+      - '.github/workflows/docs-deploy-staging-pr.yml'
     types: [opened, synchronize, reopened]
 
 # Sets permissions of the GITHUB_TOKEN
