@@ -4,7 +4,7 @@ An example repo showing how to set up staging docs with GitHub Pages.
 
 ## GreetingApp
 
-This repository contains a simple .NET 8 console application called GreetingApp that demonstrates:
+This repository contains a simple .NET console application called GreetingApp that demonstrates:
 - Command-line argument processing
 - Personalized greeting messages
 - Date and time display
