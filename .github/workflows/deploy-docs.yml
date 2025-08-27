@@ -49,7 +49,7 @@ jobs:
           git checkout gh-pages
           
           # Remove all files except staging directory
-          find . -maxdepth 1 -not -name 'staging' -not -name '.git' -not -name '.' -not -name '..' -delete
+          find . -maxdepth 1 -not -name 'staging' -not -name '.git' -not -name '.' -not -name '..' -exec rm -rf {} \;
           
           # Copy new main site content
           cp -r ../docs/_site/* .
