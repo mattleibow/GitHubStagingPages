@@ -8,11 +8,9 @@ on:
       - '.github/workflows/deploy-pr-staging.yml'
     types: [opened, synchronize, reopened]
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Sets permissions of the GITHUB_TOKEN
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
   pull-requests: write
 
 jobs:
@@ -57,8 +55,6 @@ jobs:
   deploy-staging:
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
