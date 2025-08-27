@@ -77,4 +77,4 @@ The application is configured as a .NET 8 console application:
 </Project>
 ```
 
-[← Back to Home](index.html)
+[← Back to Home](index)

@@ -44,9 +44,9 @@ dotnet run --project src/GreetingApp -- "Your Name"
 
 ## Documentation Sections
 
-- [Getting Started](getting-started.html)
-- [API Reference](api-reference.html)
-- [Contributing](contributing.html)
+- [Getting Started](getting-started)
+- [API Reference](api-reference)
+- [Contributing](contributing)
 
 ---
 

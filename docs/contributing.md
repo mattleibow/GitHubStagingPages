@@ -86,4 +86,4 @@ If you have questions about contributing, please:
 
 Thank you for contributing!
 
-[← Back to Home](index.html)
+[← Back to Home](index)

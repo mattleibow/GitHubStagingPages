@@ -62,7 +62,7 @@ Current date and time: 2025-01-27 12:34:56
 
 ## Next Steps
 
-- Check out the [API Reference](api-reference.html) for more details
-- Learn about [Contributing](contributing.html) to the project
+- Check out the [API Reference](api-reference) for more details
+- Learn about [Contributing](contributing) to the project
 
-[← Back to Home](index.html)
+[← Back to Home](index)
