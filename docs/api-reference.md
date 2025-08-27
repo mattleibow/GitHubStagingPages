@@ -64,7 +64,7 @@ Current date and time: 2025-01-27 12:34:56
 
 ## Project Configuration
 
-The application is configured as a .NET 8 console application:
+The application is configured as a .NET console application:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">

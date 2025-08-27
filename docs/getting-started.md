@@ -9,7 +9,7 @@ This guide will help you get started with GreetingApp.
 
 ## Prerequisites
 
-- .NET 8 SDK or later
+- Latest .NET SDK
 - Git (for cloning the repository)
 
 ## Installation

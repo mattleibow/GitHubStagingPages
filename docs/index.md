@@ -9,7 +9,7 @@ Welcome to the GreetingApp documentation site! This is a simple console applicat
 
 ## What is GreetingApp?
 
-GreetingApp is a .NET 8 console application that provides personalized greetings. It can:
+GreetingApp is a .NET console application that provides personalized greetings. It can:
 
 - Display a default greeting message
 - Accept a name as a command line argument for personalized greetings
@@ -40,7 +40,7 @@ dotnet run --project src/GreetingApp -- "Your Name"
 - Simple command-line interface
 - Customizable greeting messages
 - Date and time display
-- Cross-platform compatibility (.NET 8)
+- Cross-platform compatibility
 
 ## Documentation Sections
 
