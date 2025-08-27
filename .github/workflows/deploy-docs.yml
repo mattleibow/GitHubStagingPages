@@ -47,12 +47,16 @@ jobs:
           # Copy built site to temporary directory before switching branches
           cp -r docs/_site /tmp/jekyll-site
           
+          # Copy the deploy-from-gh-pages workflow to temporary directory
+          mkdir -p /tmp/jekyll-site/.github/workflows
+          cp .github/workflows/deploy-from-gh-pages.yml /tmp/jekyll-site/.github/workflows/
+          
           # Fetch gh-pages branch to preserve staging content
           git fetch origin gh-pages:gh-pages 2>/dev/null || git checkout --orphan gh-pages
           git checkout gh-pages
           
-          # Remove all files except staging directory
-          find . -maxdepth 1 -not -name 'staging' -not -name '.git' -not -name '.' -not -name '..' -exec rm -rf {} \;
+          # Remove all files except staging directory and .github
+          find . -maxdepth 1 -not -name 'staging' -not -name '.github' -not -name '.git' -not -name '.' -not -name '..' -exec rm -rf {} \;
           
           # Copy new main site content from temporary directory
           cp -r /tmp/jekyll-site/* .

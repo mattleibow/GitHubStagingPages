@@ -142,3 +142,7 @@ Create custom layouts in `docs/_layouts/` directory.
 - No additional secrets are required for basic functionality
 - All deployments are to the public `gh-pages` branch
 - Staging sites are publicly accessible but not indexed by search engines
+
+## Automatic Workflow Synchronization
+
+This repository automatically ensures that the `deploy-from-gh-pages.yml` workflow is available in the gh-pages branch. When the main documentation is deployed, the workflow file is copied to gh-pages, enabling direct pushes to gh-pages to trigger GitHub Pages deployment automatically. This ensures seamless deployment whether changes come from the main branch or are pushed directly to gh-pages.
