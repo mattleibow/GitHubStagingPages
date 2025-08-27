@@ -57,8 +57,8 @@ Current date and time: 2025-01-27 12:34:56
 
 **Personalized greeting:**
 ```bash
-$ dotnet run --project src/GreetingApp -- "Alice"
-Hello, Alice!
+$ dotnet run --project src/GreetingApp -- "Matthew"
+Hello, Matthew!
 Current date and time: 2025-01-27 12:34:56
 ```
 
