@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
         
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -52,6 +54,22 @@ jobs:
           bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
+          
+      - name: Fetch staging content from gh-pages
+        run: |
+          # Fetch gh-pages branch to get staging content
+          git fetch origin gh-pages:gh-pages 2>/dev/null || echo "No gh-pages branch found"
+          if git show-ref --verify --quiet refs/heads/gh-pages; then
+            git checkout gh-pages
+            if [ -d "staging" ]; then
+              echo "Found staging content, copying to main site"
+              mkdir -p ../docs/_site/staging
+              cp -r staging/* ../docs/_site/staging/ 2>/dev/null || echo "No staging content to copy"
+            fi
+            git checkout -
+          else
+            echo "No staging content found"
+          fi
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
