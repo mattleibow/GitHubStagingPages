@@ -44,6 +44,9 @@ jobs:
           
       - name: Deploy to gh-pages
         run: |
+          # Copy built site to temporary directory before switching branches
+          cp -r docs/_site /tmp/jekyll-site
+          
           # Fetch gh-pages branch to preserve staging content
           git fetch origin gh-pages:gh-pages 2>/dev/null || git checkout --orphan gh-pages
           git checkout gh-pages
@@ -51,8 +54,11 @@ jobs:
           # Remove all files except staging directory
           find . -maxdepth 1 -not -name 'staging' -not -name '.git' -not -name '.' -not -name '..' -exec rm -rf {} \;
           
-          # Copy new main site content
-          cp -r ../docs/_site/* .
+          # Copy new main site content from temporary directory
+          cp -r /tmp/jekyll-site/* .
+          
+          # Clean up temporary directory
+          rm -rf /tmp/jekyll-site
           
           # Commit and push
           git config --local user.email "action@github.com"
