@@ -1,0 +1,33 @@
+name: Cleanup PR Staging
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Remove staging directory
+        run: |
+          if [ -d "staging/${{ github.event.number }}" ]; then
+            rm -rf staging/${{ github.event.number }}
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add -A
+            git commit -m "Remove staging docs for PR #${{ github.event.number }}" || exit 0
+            git push
+            echo "Removed staging directory for PR #${{ github.event.number }}"
+          else
+            echo "No staging directory found for PR #${{ github.event.number }}"
+          fi

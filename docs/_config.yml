@@ -1,0 +1,23 @@
+# Site settings
+title: GreetingApp Documentation
+description: Simple documentation for the GreetingApp project
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://mattleibow.github.io/GitHubStagingPages" # the base hostname & protocol for your site
+
+# Jekyll settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Build settings
+exclude:
+  - vendor/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - "*.gemspec"
