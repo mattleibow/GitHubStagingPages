@@ -51,5 +51,3 @@ dotnet run --project src/GreetingApp -- "Your Name"
 ---
 
 *This documentation is automatically built and deployed using GitHub Actions.*
-
-> **Note**: Testing new unified deployment architecture (gh-pages → GitHub Pages).
