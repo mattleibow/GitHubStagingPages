@@ -416,3 +416,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Jekyll build artifacts
+docs/_site/
+docs/.sass-cache/
+docs/.jekyll-cache/
+docs/.jekyll-metadata
+docs/Gemfile.lock
+docs/vendor/
