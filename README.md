@@ -40,3 +40,7 @@ dotnet run --project src/GreetingApp -- "Your Name"
 - ✅ PR staging for documentation reviews
 - ✅ Automatic cleanup of staging sites when PRs are closed
 - ✅ Jekyll-based static site generation
+
+## Setup
+
+To enable GitHub Pages for your own repository, see [GitHub Pages Setup Guide](GITHUB_PAGES_SETUP.md).
