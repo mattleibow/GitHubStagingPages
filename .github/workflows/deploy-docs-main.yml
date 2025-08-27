@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'docs/**'
-      - '.github/workflows/deploy-docs.yml'
+      - '.github/workflows/deploy-docs-main.yml'
   # Allow manual triggering
   workflow_dispatch:
 
@@ -48,9 +48,9 @@ jobs:
           # Copy built site to temporary directory before switching branches
           cp -r docs/_site /tmp/jekyll-site
           
-          # Copy the deploy-from-gh-pages workflow to temporary directory
+          # Copy the deploy-docs-live workflow to temporary directory
           mkdir -p /tmp/jekyll-site/.github/workflows
-          cp .github/workflows/deploy-from-gh-pages.yml /tmp/jekyll-site/.github/workflows/
+          cp .github/workflows/deploy-docs-live.yml /tmp/jekyll-site/.github/workflows/
           
           # Fetch gh-pages branch to preserve staging content
           git fetch origin gh-pages:gh-pages 2>/dev/null || git checkout --orphan gh-pages
