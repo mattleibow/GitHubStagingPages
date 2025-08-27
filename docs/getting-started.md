@@ -5,7 +5,7 @@ title: Getting Started
 
 # Getting Started
 
-This guide will help you get started with GreetingApp.
+This guide will help you get started with GreetingApp quickly and easily.
 
 ## Prerequisites
 
