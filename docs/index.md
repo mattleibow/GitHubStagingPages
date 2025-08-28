@@ -3,7 +3,7 @@ layout: default
 title: Home
 ---
 
-# GreetingApp
+# GreetingApp Test 1
 
 Welcome to the GreetingApp documentation site! This is a simple console application that demonstrates greeting functionality.
 
