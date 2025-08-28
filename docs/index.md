@@ -15,7 +15,7 @@ GreetingApp is a .NET console application that provides personalized greetings. 
 - Accept a name as a command line argument for personalized greetings
 - Show the current date and time
 
-## Quick Start
+## Quick Start 
 
 ### Building the Application
 
