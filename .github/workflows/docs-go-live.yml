@@ -10,10 +10,10 @@ on:
       - completed
   workflow_dispatch:
 
-# Ensure documentation workflows run sequentially
+# Allow cancellation for efficiency but prevent starvation with time-based grouping
 concurrency:
-  group: "docs-deployment"
-  cancel-in-progress: false
+  group: "docs-go-live-${{ github.run_number / 5 }}" # New group every 5 runs
+  cancel-in-progress: true
 
 jobs:
   deploy:
