@@ -50,4 +50,5 @@ dotnet run --project src/GreetingApp -- "Your Name"
 
 ---
 
-*This documentation is automatically built and deployed using GitHub Actions.*
+*This documentation is automatically built and deployed using GitHub Actions.*  
+*Built on: {{ site.time | date: "%Y-%m-%d %H:%M:%S UTC" }}*
