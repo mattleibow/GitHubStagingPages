@@ -1,29 +1,30 @@
-name: Deploy from gh-pages to GitHub Pages
+name: "Docs - Go Live!"
 
 on:
-  push:
-    branches: [ gh-pages ]
-  # Allow manual triggering
+  workflow_run:
+    workflows: 
+      - "Docs - Main - Deploy"
+      - "Docs - PR Staging - Deploy"
+      - "Docs - PR Staging - Cleanup"
+    types:
+      - completed
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Ensure documentation workflows run sequentially
 concurrency:
-  group: "pages"
+  group: "docs-deployment"
   cancel-in-progress: false
 
 jobs:
-  # Deployment job
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if the triggering workflow was successful
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gh-pages
