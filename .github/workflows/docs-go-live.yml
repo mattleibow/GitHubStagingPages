@@ -12,8 +12,8 @@ on:
 
 # Ensure documentation workflows run sequentially
 concurrency:
-  group: "docs-deployment"
-  cancel-in-progress: false
+  group: "docs-go-live"
+  cancel-in-progress: true
 
 jobs:
   deploy:
