@@ -1,15 +1,15 @@
 name: "App - Build and Test"
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║ TEMPLATE GUIDE                                                         ║
-# ║                                                                        ║
-# ║ This workflow builds and tests the .NET console application.            ║
-# ║ It is independent of the Pages deployment workflows.                   ║
-# ║                                                                        ║
-# ║ KEEP this workflow if you have a .NET app to build and test.           ║
-# ║ REMOVE this entire file if you don't have a .NET console app.          ║
-# ║ Replace with your own CI workflow if your project uses a different     ║
-# ║ language or framework.                                                 ║
+# ║ TEMPLATE GUIDE                                                           ║
+# ║                                                                          ║
+# ║ This workflow builds and tests the .NET console application.             ║
+# ║ It is independent of the Pages deployment workflows.                     ║
+# ║                                                                          ║
+# ║ KEEP this workflow if you have a .NET app to build and test.             ║
+# ║ REMOVE this entire file if you don't have a .NET console app.            ║
+# ║ Replace with your own CI workflow if your project uses a different       ║
+# ║ language or framework.                                                   ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 
 on:

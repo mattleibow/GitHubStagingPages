@@ -1,22 +1,22 @@
 name: "Pages - Staging - Build and Deploy"
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║ TEMPLATE GUIDE                                                         ║
-# ║                                                                        ║
-# ║ This workflow builds a multi-section site (landing page + Jekyll docs   ║
-# ║ + Blazor WASM app), deploys it to a gh-pages branch, and supports      ║
-# ║ per-PR staging previews.                                               ║
-# ║                                                                        ║
-# ║ When copying this workflow, look for comments tagged with:              ║
-# ║   [LANDING PAGE] — static landing page (site/ folder)                  ║
-# ║   [DOCS]         — Jekyll documentation (docs/ folder)                 ║
-# ║   [WASM APP]     — Blazor WebAssembly app (src/GreetingApp.Blazor)     ║
-# ║   [STAGING]      — PR staging preview support                          ║
-# ║   [PR COMMENT]   — bot comment with staging preview links              ║
-# ║   [CORE]         — always keep: required for the workflow to function   ║
-# ║                                                                        ║
-# ║ Remove entire tagged sections you don't need. For example, if you      ║
-# ║ don't have a Blazor app, remove all [WASM APP] sections.               ║
+# ║ TEMPLATE GUIDE                                                           ║
+# ║                                                                          ║
+# ║ This workflow builds a multi-section site (landing page + Jekyll docs    ║
+# ║ + Blazor WASM app), deploys it to a gh-pages branch, and supports        ║
+# ║ per-PR staging previews.                                                 ║
+# ║                                                                          ║
+# ║ When copying this workflow, look for comments tagged with:               ║
+# ║   [LANDING PAGE] — static landing page (site/ folder)                    ║
+# ║   [DOCS]         — Jekyll documentation (docs/ folder)                   ║
+# ║   [WASM APP]     — Blazor WebAssembly app (src/GreetingApp.Blazor)       ║
+# ║   [STAGING]      — PR staging preview support                            ║
+# ║   [PR COMMENT]   — bot comment with staging preview links                ║
+# ║   [CORE]         — always keep: required for the workflow to function    ║
+# ║                                                                          ║
+# ║ Remove entire tagged sections you don't need. For example, if you        ║
+# ║ don't have a Blazor app, remove all [WASM APP] sections.                 ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 
 on:

@@ -1,14 +1,14 @@
 name: "Pages - Staging - Cleanup"
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║ TEMPLATE GUIDE                                                         ║
-# ║                                                                        ║
-# ║ [STAGING] This entire workflow supports PR staging previews.            ║
-# ║ It removes the staging/{pr-number}/ directory from the gh-pages        ║
-# ║ branch when a PR is closed. The pages-go-live.yml workflow then        ║
-# ║ re-deploys Pages automatically.                                        ║
-# ║                                                                        ║
-# ║ REMOVE this entire file if you don't want PR staging previews.         ║
+# ║ TEMPLATE GUIDE                                                           ║
+# ║                                                                          ║
+# ║ [STAGING] This entire workflow supports PR staging previews.             ║
+# ║ It removes the staging/{pr-number}/ directory from the gh-pages          ║
+# ║ branch when a PR is closed. The pages-go-live.yml workflow then          ║
+# ║ re-deploys Pages automatically.                                          ║
+# ║                                                                          ║
+# ║ REMOVE this entire file if you don't want PR staging previews.           ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 
 on:

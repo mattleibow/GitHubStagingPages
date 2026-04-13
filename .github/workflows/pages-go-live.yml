@@ -1,14 +1,14 @@
 name: "Pages - Go Live"
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║ TEMPLATE GUIDE                                                         ║
-# ║                                                                        ║
-# ║ This workflow deploys the gh-pages branch to GitHub Pages. It is        ║
-# ║ triggered automatically when the build/deploy or cleanup workflows      ║
-# ║ complete. You should always keep this workflow.                         ║
-# ║                                                                        ║
-# ║ All steps are tagged [CORE] — always keep them.                        ║
-# ║ If you renamed the other workflows, update the workflow names below.   ║
+# ║ TEMPLATE GUIDE                                                           ║
+# ║                                                                          ║
+# ║ This workflow deploys the gh-pages branch to GitHub Pages. It is         ║
+# ║ triggered automatically when the build/deploy or cleanup workflows       ║
+# ║ complete. You should always keep this workflow.                          ║
+# ║                                                                          ║
+# ║ All steps are tagged [CORE] — always keep them.                          ║
+# ║ If you renamed the other workflows, update the workflow names below.     ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 
 on:
