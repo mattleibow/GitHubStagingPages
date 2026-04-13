@@ -26,6 +26,14 @@ concurrency:
 # Default to no permissions — each job declares only what it needs.
 permissions: {}
 
+env:
+  PAGES_BRANCH: gh-pages
+  STAGING_PATH: staging
+  SITE_BASE_PATH: /${{ github.event.repository.name }}
+  SITE_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+  GIT_COMMIT_EMAIL: action@github.com
+  GIT_COMMIT_NAME: GitHub Action
+
 jobs:
   # ── Build the complete site ───────────────────────────────────────────────
   build:
@@ -61,15 +69,15 @@ jobs:
               exit 1
             fi
             echo "artifact_name=staging-site-${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "app_base_href=/GitHubStagingPages/staging/${PR_NUMBER}/app/" >> $GITHUB_OUTPUT
-            echo "docs_base_url=/GitHubStagingPages/staging/${PR_NUMBER}/docs" >> $GITHUB_OUTPUT
+            echo "app_base_href=${SITE_BASE_PATH}/${STAGING_PATH}/${PR_NUMBER}/app/" >> $GITHUB_OUTPUT
+            echo "docs_base_url=${SITE_BASE_PATH}/${STAGING_PATH}/${PR_NUMBER}/docs" >> $GITHUB_OUTPUT
             echo "is_staging=true" >> $GITHUB_OUTPUT
             echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "source_label=PR #${PR_NUMBER}" >> $GITHUB_OUTPUT
           else
             echo "artifact_name=main-site" >> $GITHUB_OUTPUT
-            echo "app_base_href=/GitHubStagingPages/app/" >> $GITHUB_OUTPUT
-            echo "docs_base_url=/GitHubStagingPages/docs" >> $GITHUB_OUTPUT
+            echo "app_base_href=${SITE_BASE_PATH}/app/" >> $GITHUB_OUTPUT
+            echo "docs_base_url=${SITE_BASE_PATH}/docs" >> $GITHUB_OUTPUT
             echo "is_staging=false" >> $GITHUB_OUTPUT
             echo "pr_number=" >> $GITHUB_OUTPUT
             echo "source_label=main" >> $GITHUB_OUTPUT
@@ -155,7 +163,7 @@ jobs:
           path: site-out
           retention-days: 1
 
-  # ── Deploy to docs-live branch ────────────────────────────────────────────
+  # ── Deploy to pages branch ───────────────────────────────────────────────
   deploy:
     name: Deploy
     needs: build
@@ -171,27 +179,27 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout docs-live branch
+      - name: Checkout pages branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REMOTE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           git init .
           git remote add origin "$REMOTE_URL"
-          git config user.email "action@github.com"
-          git config user.name "GitHub Action"
+          git config user.email "$GIT_COMMIT_EMAIL"
+          git config user.name "$GIT_COMMIT_NAME"
 
-          # Fetch docs-live if it exists; otherwise create an orphan branch
-          if git fetch origin docs-live 2>/dev/null; then
-            git checkout -b docs-live origin/docs-live
+          # Fetch pages branch if it exists; otherwise create an orphan branch
+          if git fetch origin "$PAGES_BRANCH" 2>/dev/null; then
+            git checkout -b "$PAGES_BRANCH" "origin/$PAGES_BRANCH"
           else
-            echo "docs-live branch does not exist, creating orphan branch"
-            git checkout --orphan docs-live
+            echo "$PAGES_BRANCH branch does not exist, creating orphan branch"
+            git checkout --orphan "$PAGES_BRANCH"
             git rm -rf . 2>/dev/null || true
             touch .nojekyll
             git add .nojekyll
-            git commit -m "Initialize docs-live branch"
-            git push origin docs-live
+            git commit -m "Initialize $PAGES_BRANCH branch"
+            git push origin "$PAGES_BRANCH"
           fi
 
       - name: Download site artifact
@@ -203,9 +211,9 @@ jobs:
       - name: Deploy main site content
         if: needs.build.outputs.is_staging == 'false'
         run: |
-          # Remove everything except staging/ and .git/
+          # Remove everything except staging directory and .git/
           find . -maxdepth 1 \
-              -not -name 'staging' \
+              -not -name "$STAGING_PATH" \
               -not -name '.git' \
               -not -name '.' \
               -not -name '..' \
@@ -219,7 +227,7 @@ jobs:
           git add .
           if ! git diff --cached --quiet; then
             git commit -m "Deploy main site from commit ${{ github.sha }}"
-            git push origin docs-live
+            git push origin "$PAGES_BRANCH"
           else
             echo "No changes to commit"
           fi
@@ -236,18 +244,18 @@ jobs:
           fi
 
           # Recreate the staging directory to ensure no stale files
-          rm -rf "staging/$PR_NUMBER"
-          mkdir -p "staging/$PR_NUMBER"
-          cp -r /tmp/site-temp/. "staging/$PR_NUMBER/"
+          rm -rf "$STAGING_PATH/$PR_NUMBER"
+          mkdir -p "$STAGING_PATH/$PR_NUMBER"
+          cp -r /tmp/site-temp/. "$STAGING_PATH/$PR_NUMBER/"
           rm -rf /tmp/site-temp
 
           # Ensure .nojekyll exists at root so _framework is served
           touch .nojekyll
 
-          git add .nojekyll "staging/$PR_NUMBER"
+          git add .nojekyll "$STAGING_PATH/$PR_NUMBER"
           if ! git diff --cached --quiet; then
             git commit -m "Deploy staging site for PR #$PR_NUMBER"
-            git push origin docs-live
+            git push origin "$PAGES_BRANCH"
           else
             echo "No changes to commit"
           fi
@@ -269,7 +277,7 @@ jobs:
         with:
           script: |
             const prNumber = ${{ needs.build.outputs.pr_number }};
-            const stagingBase = `https://mattleibow.github.io/GitHubStagingPages/staging/${prNumber}`;
+            const stagingBase = `${process.env.SITE_BASE_URL}/${process.env.STAGING_PATH}/${prNumber}`;
             const stagingUrl = `${stagingBase}/`;
             const docsUrl = `${stagingBase}/docs/`;
             const appUrl = `${stagingBase}/app/`;

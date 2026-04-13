@@ -4,9 +4,21 @@ on:
   pull_request:
     branches: [ main ]
     types: [ closed ]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to clean up'
+        required: true
+        type: string
 
 # Default to no permissions — each job declares only what it needs.
 permissions: {}
+
+env:
+  PAGES_BRANCH: gh-pages
+  STAGING_PATH: staging
+  GIT_COMMIT_EMAIL: action@github.com
+  GIT_COMMIT_NAME: GitHub Action
 
 # Each PR cleanup gets its own group, matching the deploy group for the same PR.
 concurrency:
@@ -15,7 +27,9 @@ concurrency:
 
 jobs:
   cleanup:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,9 +39,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Remove staging directory from docs-live
+      - name: Remove staging directory from pages branch
         env:
-          PR_NUMBER: ${{ github.event.number }}
+          PR_NUMBER: ${{ github.event.number || inputs.pr_number }}
         run: |
           # Validate PR_NUMBER is a positive integer before using in paths
           if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
@@ -35,29 +49,29 @@ jobs:
             exit 1
           fi
 
-          # Switch to docs-live branch; exit cleanly if it doesn't exist yet
-          if ! git fetch origin docs-live:docs-live 2>/dev/null; then
-            echo "docs-live branch does not exist, nothing to clean up"
+          # Switch to pages branch; exit cleanly if it doesn't exist yet
+          if ! git fetch origin "$PAGES_BRANCH:$PAGES_BRANCH" 2>/dev/null; then
+            echo "$PAGES_BRANCH branch does not exist, nothing to clean up"
             exit 0
           fi
-          if ! git checkout docs-live 2>/dev/null; then
-            echo "Failed to checkout docs-live, nothing to clean up"
+          if ! git checkout "$PAGES_BRANCH" 2>/dev/null; then
+            echo "Failed to checkout $PAGES_BRANCH, nothing to clean up"
             exit 0
           fi
 
-          if [ -d "staging/$PR_NUMBER" ]; then
-            rm -rf staging/$PR_NUMBER
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
+          if [ -d "$STAGING_PATH/$PR_NUMBER" ]; then
+            rm -rf "$STAGING_PATH/$PR_NUMBER"
+            git config --local user.email "$GIT_COMMIT_EMAIL"
+            git config --local user.name "$GIT_COMMIT_NAME"
             git add -A
             if ! git diff --cached --quiet; then
               git commit -m "Remove staging site for PR #$PR_NUMBER"
-              git push origin docs-live
-              echo "Removed staging directory for PR #$PR_NUMBER"
+              git push origin "$PAGES_BRANCH"
+              echo "Removed $STAGING_PATH directory for PR #$PR_NUMBER"
             else
               echo "No changes to commit for PR #$PR_NUMBER"
             fi
           else
-            echo "No staging directory found for PR #$PR_NUMBER"
+            echo "No $STAGING_PATH directory found for PR #$PR_NUMBER"
           fi
 

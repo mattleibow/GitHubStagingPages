@@ -12,6 +12,9 @@ on:
 # Default to no permissions — each job declares only what it needs.
 permissions: {}
 
+env:
+  PAGES_BRANCH: gh-pages
+
 # Ensure go-live runs one at a time (latest wins)
 concurrency:
   group: "docs-go-live"
@@ -32,10 +35,10 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout docs-live
+      - name: Checkout pages branch
         uses: actions/checkout@v4
         with:
-          ref: docs-live
+          ref: ${{ env.PAGES_BRANCH }}
 
       - name: Remove .git directory
         run: rm -rf .git
