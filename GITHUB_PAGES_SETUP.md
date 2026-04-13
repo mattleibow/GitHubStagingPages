@@ -1,10 +1,20 @@
 # GitHub Pages Setup Guide
 
-This document explains how to configure GitHub Pages for this repository to enable the documentation site and PR staging functionality.
+This document explains how to configure GitHub Pages for this repository to enable the full site (landing page, docs, and Blazor app) with PR staging functionality.
+
+## Site Structure
+
+The deployed site has three sections:
+
+| Path | Content |
+|------|---------|
+| `/GitHubStagingPages/` | Landing page |
+| `/GitHubStagingPages/docs/` | Jekyll documentation site |
+| `/GitHubStagingPages/app/` | Blazor WebAssembly interactive app |
+
+PR staging mirrors this structure under `/GitHubStagingPages/staging/{pr-number}/`.
 
 ## Repository Settings Configuration
-
-To enable GitHub Pages for this repository, follow these steps:
 
 ### 1. Enable GitHub Pages
 
@@ -23,82 +33,37 @@ The workflows require the following permissions to be enabled:
    - ✅ Read and write permissions
    - ✅ Allow GitHub Actions to create and approve pull requests
 
-### 3. Branch Protection (Optional but Recommended)
-
-For production use, consider setting up branch protection rules:
-
-1. Go to **Settings** → **Branches**
-2. Click **Add rule** for `main` branch
-3. Enable:
-   - ✅ Require status checks to pass before merging
-   - ✅ Require branches to be up to date before merging
-   - Select the relevant workflow checks
-
 ## How It Works
 
-### Main Documentation Deployment
+### Unified Build and Deploy (`build-site.yml`)
 
-- **Trigger**: Push to `main` branch with changes in `docs/` folder
-- **Target**: https://mattleibow.github.io/GitHubStagingPages
-- **Workflow**: `.github/workflows/docs-deploy-main.yml`
+All site content (landing page, docs, Blazor app) is built in a single workflow and pushed to the `docs-live` branch.
 
-### PR Staging
+- **Main deploy** (push to `main`): site goes to the root of `docs-live`
+- **PR staging** (pull request): site goes to `docs-live/staging/{pr-number}/`
+- **PR comment**: bot posts (and updates) a comment with staging preview links
+- **Dry run**: `workflow_dispatch` with `dry_run: true` builds but skips deploy
 
-- **Trigger**: Pull request with changes in `docs/` folder
-- **Target**: https://mattleibow.github.io/GitHubStagingPages/staging/[pr-number]
-- **Workflow**: `.github/workflows/docs-deploy-staging-pr.yml`
-- **Auto-comment**: Adds a comment to the PR with the staging URL
+### Go Live (`docs-go-live.yml`)
 
-### Cleanup
+Triggered automatically after a successful build/deploy or cleanup, this workflow publishes the `docs-live` branch to GitHub Pages.
 
-- **Trigger**: Pull request closed
-- **Action**: Removes staging directory from `gh-pages` branch
-- **Workflow**: `.github/workflows/docs-deploy-staging-pr-cleanup.yml`
+### PR Cleanup (`docs-cleanup-staging-pr.yml`)
 
-## Testing the Setup
+When a PR is closed, the staging directory is removed from `docs-live`.
 
-### 1. Test Main Documentation
+## Workflow Summary
 
-1. Merge this PR to `main`
-2. Check that the deployment workflow runs successfully
-3. Visit https://mattleibow.github.io/GitHubStagingPages
-
-### 2. Test PR Staging
-
-1. Create a new PR with documentation changes
-2. Check that the staging workflow runs
-3. Look for the bot comment with the staging URL
-4. Verify the staging site works
-5. Close the PR and verify cleanup runs
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Workflow fails with permissions error**
-   - Check that workflow permissions are set to "Read and write"
-   - Ensure GITHUB_TOKEN has necessary permissions
-
-2. **404 on GitHub Pages site**
-   - Verify Pages is enabled in repository settings
-   - Check that the deployment workflow completed successfully
-   - Wait a few minutes for DNS propagation
-
-3. **Jekyll build fails**
-   - Check the workflow logs for specific errors
-   - Verify all markdown files have proper front matter
-   - Ensure Gemfile dependencies are correct
-
-### Workflow Logs
-
-To debug issues:
-1. Go to **Actions** tab in GitHub
-2. Click on the failing workflow run
-3. Expand the failed step to see detailed logs
+| Workflow | Trigger | Action |
+|----------|---------|--------|
+| `build-site.yml` | Push to main / PR open or update | Build site, deploy to `docs-live`, comment on PR |
+| `docs-go-live.yml` | After build/deploy/cleanup | Publish `docs-live` to GitHub Pages |
+| `docs-cleanup-staging-pr.yml` | PR closed | Remove staging directory from `docs-live` |
+| `build-and-run.yml` | Push / PR | Build and run the console app CI check |
 
 ## Local Development
 
-To test documentation changes locally:
+### Documentation (Jekyll)
 
 ```bash
 cd docs
@@ -107,42 +72,33 @@ bundle install
 bundle exec jekyll serve
 ```
 
-Visit http://localhost:4000 to preview changes.
+Visit http://localhost:4000 to preview.
 
-## Customization
+### Blazor WASM App
 
-### Changing the Theme
-
-Edit `docs/_config.yml` and change the `theme` value:
-
-```yaml
-theme: minima  # or another Jekyll theme
+```bash
+cd src/GreetingApp.Blazor
+dotnet run
 ```
 
-### Adding Custom Styling
+Visit http://localhost:5000 to preview.
 
-Create `docs/assets/css/style.scss`:
+## Troubleshooting
 
-```scss
----
----
+### Workflow fails with permissions error
+- Check that workflow permissions are set to "Read and write"
+- Ensure GITHUB_TOKEN has the necessary permissions
 
-@import "{{ site.theme }}";
+### 404 on GitHub Pages site
+- Verify Pages is enabled and set to "GitHub Actions" source
+- Check that the `docs-go-live.yml` workflow completed successfully
+- Wait a few minutes for GitHub Pages to propagate
 
-/* Custom styles here */
-```
+### Jekyll build fails
+- Check the workflow logs for specific errors
+- Verify all markdown files have proper front matter
+- Ensure `docs/Gemfile` dependencies are correct
 
-### Custom Layouts
-
-Create custom layouts in `docs/_layouts/` directory.
-
-## Security Notes
-
-- The workflows use `GITHUB_TOKEN` which is automatically provided
-- No additional secrets are required for basic functionality
-- All deployments are to the public `gh-pages` branch
-- Staging sites are publicly accessible but not indexed by search engines
-
-## Automatic Workflow Synchronization
-
-This repository automatically ensures that the `docs-go-live.yml` workflow is available in the gh-pages branch. When the main documentation is deployed, the workflow file is copied to gh-pages, enabling direct pushes to gh-pages to trigger GitHub Pages deployment automatically. This ensures seamless deployment whether changes come from the main branch or are pushed directly to gh-pages.
+### Blazor app shows blank page
+- Confirm the `<base href>` was correctly rewritten in the deploy step
+- Check browser console for errors — usually indicates a wrong base path

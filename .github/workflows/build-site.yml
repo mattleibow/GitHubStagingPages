@@ -1,0 +1,321 @@
+name: "Site - Build and Deploy"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to deploy as staging (leave blank to deploy to root)'
+        required: false
+        default: ''
+        type: string
+      dry_run:
+        description: 'Dry run — build everything but do not deploy'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# Default to no permissions — each job declares only what it needs.
+permissions: {}
+
+jobs:
+  # ── Build the complete site ───────────────────────────────────────────────
+  build:
+    name: Build Site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      artifact_name: ${{ steps.vars.outputs.artifact_name }}
+      is_staging: ${{ steps.vars.outputs.is_staging }}
+      pr_number: ${{ steps.vars.outputs.pr_number }}
+    steps:
+      - name: Setup build variables
+        id: vars
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER_EVENT: ${{ github.event.number }}
+          PR_NUMBER_INPUT: ${{ inputs.pr_number }}
+        shell: bash
+        run: |
+          if [ "$EVENT_NAME" == "pull_request" ]; then
+            PR_NUMBER="$PR_NUMBER_EVENT"
+          elif [ "$EVENT_NAME" == "workflow_dispatch" ] && [ -n "$PR_NUMBER_INPUT" ]; then
+            PR_NUMBER="$PR_NUMBER_INPUT"
+          else
+            PR_NUMBER=""
+          fi
+
+          if [ -n "$PR_NUMBER" ]; then
+            # Validate PR_NUMBER is a positive integer
+            if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+              echo "Invalid PR number: $PR_NUMBER"
+              exit 1
+            fi
+            echo "artifact_name=staging-site-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            echo "app_base_href=/GitHubStagingPages/staging/${PR_NUMBER}/app/" >> $GITHUB_OUTPUT
+            echo "docs_base_url=/GitHubStagingPages/staging/${PR_NUMBER}/docs" >> $GITHUB_OUTPUT
+            echo "is_staging=true" >> $GITHUB_OUTPUT
+            echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+            echo "source_label=PR #${PR_NUMBER}" >> $GITHUB_OUTPUT
+          else
+            echo "artifact_name=main-site" >> $GITHUB_OUTPUT
+            echo "app_base_href=/GitHubStagingPages/app/" >> $GITHUB_OUTPUT
+            echo "docs_base_url=/GitHubStagingPages/docs" >> $GITHUB_OUTPUT
+            echo "is_staging=false" >> $GITHUB_OUTPUT
+            echo "pr_number=" >> $GITHUB_OUTPUT
+            echo "source_label=main" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+          working-directory: './docs'
+
+      # ── Build Jekyll documentation ────────────────────────────────────────
+      - name: Build Jekyll docs
+        env:
+          JEKYLL_ENV: production
+          DOCS_BASE_URL: ${{ steps.vars.outputs.docs_base_url }}
+        run: |
+          cd docs
+          bundle exec jekyll build --baseurl "$DOCS_BASE_URL"
+
+      # ── Build Blazor WASM app ─────────────────────────────────────────────
+      - name: Restore .NET dependencies
+        run: dotnet restore src/GreetingApp.Blazor/GreetingApp.Blazor.csproj
+
+      - name: Publish Blazor WASM app
+        env:
+          SOURCE_LABEL: ${{ steps.vars.outputs.source_label }}
+        run: |
+          COMMIT_SHORT="${GITHUB_SHA:0:7}"
+          dotnet publish src/GreetingApp.Blazor/GreetingApp.Blazor.csproj \
+            -c Release \
+            -o output/app-publish \
+            --nologo
+
+      # ── Assemble complete site ────────────────────────────────────────────
+      - name: Assemble site
+        env:
+          APP_BASE_HREF: ${{ steps.vars.outputs.app_base_href }}
+          SOURCE_LABEL: ${{ steps.vars.outputs.source_label }}
+        shell: bash
+        run: |
+          COMMIT_SHORT="${GITHUB_SHA:0:7}"
+          BUILD_FOOTER="${SOURCE_LABEL} · ${COMMIT_SHORT}"
+
+          mkdir -p site-out
+
+          # Landing page → root
+          cp site/index.html site-out/
+          cp site/style.css site-out/
+          cp site/404.html site-out/
+          touch site-out/.nojekyll
+
+          # Inject build info into landing page footer
+          sed -i "s|Built with ❤️ using .NET and GitHub Actions.|Built with ❤️ using .NET and GitHub Actions. <small>(${BUILD_FOOTER})</small>|" site-out/index.html
+
+          # Docs → /docs/
+          cp -r docs/_site site-out/docs
+
+          # App → /app/
+          cp -r output/app-publish/wwwroot site-out/app
+
+          # Rewrite Blazor app base href for deployment path
+          sed -i "s|<base href=\"/\" />|<base href=\"$APP_BASE_HREF\" />|g" site-out/app/index.html
+
+          echo "=== Site layout ==="
+          find site-out -maxdepth 2 -type f | head -30
+          echo "..."
+          echo "Total files: $(find site-out -type f | wc -l)"
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.artifact_name }}
+          path: site-out
+          retention-days: 1
+
+  # ── Deploy to docs-live branch ────────────────────────────────────────────
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    # Serialize deploys: main deploys serialize together, each PR gets its
+    # own group. cancel-in-progress ensures newer commits win over older ones.
+    concurrency:
+      group: "docs-deploy-${{ needs.build.outputs.is_staging == 'true' && format('pr-{0}', needs.build.outputs.pr_number) || 'main' }}"
+      cancel-in-progress: true
+    if: |
+      !inputs.dry_run &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout docs-live branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REMOTE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git init .
+          git remote add origin "$REMOTE_URL"
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+
+          # Fetch docs-live if it exists; otherwise create an orphan branch
+          if git fetch origin docs-live 2>/dev/null; then
+            git checkout -b docs-live origin/docs-live
+          else
+            echo "docs-live branch does not exist, creating orphan branch"
+            git checkout --orphan docs-live
+            git rm -rf . 2>/dev/null || true
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Initialize docs-live branch"
+            git push origin docs-live
+          fi
+
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+          path: /tmp/site-temp
+
+      - name: Deploy main site content
+        if: needs.build.outputs.is_staging == 'false'
+        run: |
+          # Remove everything except staging/ and .git/
+          find . -maxdepth 1 \
+              -not -name 'staging' \
+              -not -name '.git' \
+              -not -name '.' \
+              -not -name '..' \
+            -exec rm -rf {} \;
+          cp -r /tmp/site-temp/. .
+          rm -rf /tmp/site-temp
+
+          # Ensure .nojekyll exists so _framework/ directories are served
+          touch .nojekyll
+
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "Deploy main site from commit ${{ github.sha }}"
+            git push origin docs-live
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Deploy staging site content
+        if: needs.build.outputs.is_staging == 'true'
+        env:
+          PR_NUMBER: ${{ needs.build.outputs.pr_number }}
+        run: |
+          # Validate PR_NUMBER is a positive integer before using in paths
+          if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid PR number: $PR_NUMBER"
+            exit 1
+          fi
+
+          # Recreate the staging directory to ensure no stale files
+          rm -rf "staging/$PR_NUMBER"
+          mkdir -p "staging/$PR_NUMBER"
+          cp -r /tmp/site-temp/. "staging/$PR_NUMBER/"
+          rm -rf /tmp/site-temp
+
+          # Ensure .nojekyll exists at root so _framework is served
+          touch .nojekyll
+
+          git add .nojekyll "staging/$PR_NUMBER"
+          if ! git diff --cached --quiet; then
+            git commit -m "Deploy staging site for PR #$PR_NUMBER"
+            git push origin docs-live
+          else
+            echo "No changes to commit"
+          fi
+
+  # ── Comment on PR with preview URL ───────────────────────────────────────
+  comment:
+    name: Comment on PR
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    if: |
+      needs.build.outputs.is_staging == 'true' &&
+      github.event_name == 'pull_request' &&
+      (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ needs.build.outputs.pr_number }};
+            const stagingBase = `https://mattleibow.github.io/GitHubStagingPages/staging/${prNumber}`;
+            const stagingUrl = `${stagingBase}/`;
+            const docsUrl = `${stagingBase}/docs/`;
+            const appUrl = `${stagingBase}/app/`;
+
+            // Hidden marker to uniquely identify this workflow's comment
+            const marker = '<!-- greetingapp-staging-preview -->';
+
+            const commentBody = [
+              marker,
+              '🚀 **Staging Preview**',
+              '',
+              'This PR has been deployed to a staging environment:',
+              '',
+              `🔗 **[View Staging Site](${stagingUrl})**`,
+              `📖 **[View Staging Docs](${docsUrl})**`,
+              `⚡ **[View Staging App](${appUrl})**`,
+              '',
+              'This preview is updated automatically when you push new commits.',
+              '',
+              '---',
+              '*Automatically posted by the site deployment workflow.*'
+            ].join('\n');
+
+            // Find and update existing bot comment, or create a new one
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+            const botComment = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes(marker)
+            );
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+            }

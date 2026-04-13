@@ -1,0 +1,34 @@
+﻿@page "/"
+
+<PageTitle>GreetingApp</PageTitle>
+
+<h1>GreetingApp</h1>
+
+<p>Enter your name to get a personalized greeting:</p>
+
+<div class="greeting-form">
+    <input @bind="name" @bind:event="oninput" placeholder="Enter your name..." class="form-control" />
+    <button @onclick="GetGreeting" class="btn btn-primary mt-2">Greet Me!</button>
+</div>
+
+@if (!string.IsNullOrEmpty(greeting))
+{
+    <div class="alert alert-success mt-3">
+        <h4>@greeting</h4>
+        <p class="mb-0"><small>Current time: @currentTime</small></p>
+    </div>
+}
+
+@code {
+    private string name = string.Empty;
+    private string greeting = string.Empty;
+    private string currentTime = string.Empty;
+
+    private void GetGreeting()
+    {
+        greeting = string.IsNullOrWhiteSpace(name)
+            ? "Hello!"
+            : $"Hello, {name}!";
+        currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+    }
+}
