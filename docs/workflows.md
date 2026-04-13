@@ -17,12 +17,14 @@ This page describes each GitHub Actions workflow in `.github/workflows/`.
 **What it does:**
 
 ```
-build → deploy → go-live → comment (PR only)
+build → deploy → comment (PR only)
 ```
+
+The `deploy` job pushes built content to the `docs-live` branch. The actual GitHub Pages publish is handled by a separate `docs-go-live.yml` that watches for this workflow to complete.
 
 ### `build` job
 
-Runs on every trigger. Produces a `site-out/` artifact containing:
+Runs on every trigger. Produces a site artifact containing:
 
 | Output path | Built from |
 |-------------|-----------|
@@ -43,17 +45,23 @@ If `docs-live` does not exist, it is created as an orphan branch.
 
 **Concurrency:** main deploys use the group `docs-deploy-main`. Each PR deploy uses the group `docs-deploy-pr-{pr-number}`. `cancel-in-progress: true` means a newer commit supersedes an older build in flight.
 
-### `go-live` job
-
-Deploys the full `docs-live` branch to GitHub Pages using `actions/deploy-pages`.
-
-This runs after every successful `deploy` — for both main and PR staging — so GitHub Pages always reflects the latest `docs-live` state.
-
-**Concurrency:** all go-live runs share a single group (`docs-go-live`) with `cancel-in-progress: true`, so only the latest wins.
-
 ### `comment` job (PR only)
 
 Posts (or updates) a bot comment on the PR with links to the staging preview. The comment is identified by a hidden HTML marker so it is updated in-place on subsequent pushes rather than creating new comments.
+
+---
+
+## `docs-go-live.yml` — Docs: Go Live!
+
+**Triggers:**
+- `workflow_run` on completion of "Site - Build and Deploy" or "Site - PR Staging - Cleanup"
+- `workflow_dispatch` (manual re-deploy)
+
+This is the only place GitHub Pages is deployed. It is triggered automatically whenever either `build-site.yml` or `docs-cleanup-staging-pr.yml` completes successfully.
+
+> **Important:** `workflow_run` always executes from the **default branch** (`main`). This means the `docs-go-live.yml` on `main` handles go-live for all pushes and PRs — you only need this file correctly set up on `main`.
+
+**Concurrency:** all go-live runs share the group `docs-go-live` with `cancel-in-progress: true`, so only the latest wins.
 
 ---
 
@@ -64,28 +72,14 @@ Posts (or updates) a bot comment on the PR with links to the staging preview. Th
 **What it does:**
 
 ```
-cleanup → go-live
+cleanup
 ```
 
-### `cleanup` job
+Removes `staging/{pr-number}/` from the `docs-live` branch and pushes. The `docs-go-live.yml` workflow then fires automatically (via `workflow_run`) to re-deploy GitHub Pages with the staging directory gone.
 
-Removes `staging/{pr-number}/` from the `docs-live` branch. If the directory does not exist (e.g., the PR never triggered a build), the job exits cleanly.
+The PR number is validated as a positive integer before being used in any file path. If the staging directory does not exist, the job exits cleanly.
 
-The PR number is validated as a positive integer before being used in any file path.
-
-### `go-live` job
-
-Re-deploys `docs-live` to GitHub Pages after the staging directory has been removed, so the deleted preview disappears from the live site.
-
-**Concurrency:** Uses the group `docs-deploy-pr-{pr-number}` — the same group used by the corresponding staging deploy job in `build-site.yml`. This ensures cleanup always waits for any in-progress staging deploy for the same PR to finish before removing the directory.
-
----
-
-## `docs-go-live.yml` — Docs: Go Live!
-
-**Triggers:** `workflow_dispatch` only
-
-This is a manual safety valve. If a Pages deployment fails for any reason, run this workflow to re-deploy whatever is currently in `docs-live` without rebuilding anything.
+**Concurrency:** Uses the group `docs-deploy-pr-{pr-number}` — the same group as the corresponding staging deploy job in `build-site.yml`. This ensures cleanup always waits for any in-progress staging deploy for the same PR to finish before removing the directory.
 
 ---
 
@@ -101,22 +95,18 @@ Basic CI: restores, builds, and runs the console app to verify the .NET solution
 
 ```
 Push to main
-  └─ build-site.yml
-       ├─ build
-       ├─ deploy   (writes root of docs-live)
-       └─ go-live  (deploys docs-live → Pages)
+  └─ build-site.yml (build → deploy)      writes root of docs-live
+       └─ docs-go-live.yml (workflow_run)  deploys docs-live → Pages
 
 PR opened/updated
-  └─ build-site.yml
-       ├─ build
-       ├─ deploy   (writes staging/{pr}/ in docs-live)
-       ├─ go-live  (deploys docs-live → Pages)
-       └─ comment  (posts/updates PR preview comment)
+  └─ build-site.yml (build → deploy → comment)  writes staging/{pr}/ in docs-live
+       └─ docs-go-live.yml (workflow_run)        deploys docs-live → Pages
 
 PR closed
-  └─ docs-cleanup-staging-pr.yml
-       ├─ cleanup  (removes staging/{pr}/ from docs-live)
-       └─ go-live  (deploys docs-live → Pages)
+  └─ docs-cleanup-staging-pr.yml (cleanup)  removes staging/{pr}/ from docs-live
+       └─ docs-go-live.yml (workflow_run)   deploys docs-live → Pages
 ```
+
+> `docs-go-live.yml` runs from `main` and handles all GitHub Pages deployments, regardless of which branch or PR triggered the upstream workflow.
 
 [← Back to Home](index)

@@ -1,8 +1,12 @@
 name: "Docs - Go Live!"
 
 on:
-  # Manual re-deploy: re-publishes whatever is currently on docs-live to Pages.
-  # This is useful if a Pages deployment failed and needs to be retried.
+  workflow_run:
+    workflows:
+      - "Site - Build and Deploy"
+      - "Site - PR Staging - Cleanup"
+    types:
+      - completed
   workflow_dispatch:
 
 # Default to no permissions — each job declares only what it needs.
@@ -15,6 +19,10 @@ concurrency:
 
 jobs:
   deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
