@@ -1,6 +1,6 @@
 # Site settings
-title: GreetingApp
-description: Simple documentation for the GreetingApp project
+title: GitHub Staging Pages
+description: A guide to setting up multi-section sites with PR staging on GitHub Pages
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://mattleibow.github.io/GitHubStagingPages" # the base hostname & protocol for your site
 

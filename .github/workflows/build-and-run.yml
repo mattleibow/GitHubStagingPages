@@ -1,4 +1,4 @@
-name: Build and Run GreetingApp
+name: Build and Test
 
 on:
   push:
@@ -6,26 +6,31 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions: {}
+
 jobs:
   build-and-run:
+    name: Build GreetingApp
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-        
+
     - name: Restore dependencies
       run: dotnet restore
-      
+
     - name: Build
       run: dotnet build --no-restore
-      
+
     - name: Run app (default greeting)
       run: dotnet run --project src/GreetingApp --no-build
-      
+
     - name: Run app (with name)
       run: dotnet run --project src/GreetingApp --no-build -- "GitHub Actions"

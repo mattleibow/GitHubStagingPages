@@ -1,21 +1,22 @@
 # GitHubStagingPages
 
-An example repo showing how to set up staging docs with GitHub Pages.
+An example repo showing how to set up a multi-part site with staging support using GitHub Pages.
 
 ## GreetingApp
 
-This repository contains a simple .NET console application called GreetingApp that demonstrates:
-- Command-line argument processing
-- Personalized greeting messages
-- Date and time display
+This repository contains a simple .NET console application called GreetingApp and a Blazor WebAssembly interactive demo.
 
-## Documentation
+## Site
 
-📖 **[View Documentation](https://mattleibow.github.io/GitHubStagingPages)**
+The site is made up of three parts:
 
-The documentation is automatically built and deployed using GitHub Actions:
-- **Main docs**: https://mattleibow.github.io/GitHubStagingPages
-- **PR staging**: https://mattleibow.github.io/GitHubStagingPages/staging/[pr-number]
+| URL | Content |
+|-----|---------|
+| [Landing page](https://mattleibow.github.io/GitHubStagingPages/) | Home page linking to docs and app |
+| [Docs](https://mattleibow.github.io/GitHubStagingPages/docs/) | Jekyll documentation site |
+| [App](https://mattleibow.github.io/GitHubStagingPages/app/) | Blazor WebAssembly interactive demo |
+
+PR staging mirrors this structure under `/staging/{pr-number}/`.
 
 ## Quick Start
 
@@ -24,22 +25,21 @@ The documentation is automatically built and deployed using GitHub Actions:
 git clone https://github.com/mattleibow/GitHubStagingPages.git
 cd GitHubStagingPages
 
-# Build the application
-dotnet build
-
-# Run with default greeting
+# Run the console app
 dotnet run --project src/GreetingApp
 
-# Run with custom name
-dotnet run --project src/GreetingApp -- "Your Name"
+# Run the Blazor app locally
+dotnet run --project src/GreetingApp.Blazor
 ```
 
 ## Features
 
-- ✅ Automated documentation deployment to GitHub Pages
-- ✅ PR staging for documentation reviews
+- ✅ Unified build and deploy workflow (landing page + docs + Blazor app)
+- ✅ PR staging for all site sections
+- ✅ Automatic PR comment with preview links
 - ✅ Automatic cleanup of staging sites when PRs are closed
-- ✅ Jekyll-based static site generation
+- ✅ Jekyll documentation site
+- ✅ Blazor WebAssembly interactive app
 
 ## Setup
 

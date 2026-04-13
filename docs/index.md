@@ -3,52 +3,37 @@ layout: default
 title: Home
 ---
 
-# GreetingApp
+# GitHub Staging Pages
 
-Welcome to the GreetingApp documentation site! This is a simple console application that demonstrates greeting functionality.
+This repository demonstrates how to build and deploy a **multi-section site** on GitHub Pages with full **PR staging support** — so every pull request gets its own live preview before merging.
 
-## What is GreetingApp?
+## What This Demonstrates
 
-GreetingApp is a .NET console application that provides personalized greetings. It can:
+The pattern shown here gives you:
 
-- Display a default greeting message
-- Accept a name as a command line argument for personalized greetings
-- Show the current date and time
+- A **landing page** that links to all site sections
+- A **documentation site** (Jekyll) at `/docs/`
+- An **interactive Blazor WASM app** at `/app/`
+- **Automatic PR staging** — every PR gets a preview at `/staging/{pr-number}/`
+- **PR comments** with direct links to the staging previews
+- **Automatic cleanup** — staging sites are removed when their PR is closed
 
-## Quick Start
+## Site Sections
 
-### Building the Application
+| Path | Contents |
+|------|---------|
+| `/` | Landing page |
+| `/docs/` | Jekyll documentation (this site) |
+| `/app/` | Blazor WebAssembly interactive demo |
+| `/staging/{pr}/` | Per-PR preview (mirroring the above structure) |
 
-```bash
-dotnet build
-```
+## Documentation
 
-### Running the Application
-
-Default greeting:
-```bash
-dotnet run --project src/GreetingApp
-```
-
-Personalized greeting:
-```bash
-dotnet run --project src/GreetingApp -- "Your Name"
-```
-
-## Features
-
-- Simple command-line interface
-- Customizable greeting messages
-- Date and time display
-- Cross-platform compatibility
-
-## Documentation Sections
-
-- [Getting Started](getting-started)
-- [API Reference](api-reference)
-- [Contributing](contributing)
+- [Quick Start](quickstart) — Get up and running in minutes
+- [Repository Setup](setup) — Settings and permissions required
+- [Workflows Reference](workflows) — How the CI/CD workflows work
+- [Branch Strategy](branching) — How `main`, `docs-live`, and `staging/` fit together
 
 ---
 
-*This documentation is automatically built and deployed using GitHub Actions.*  
 *Built on: {{ site.time | date: "%Y-%m-%d %H:%M:%S UTC" }}*
