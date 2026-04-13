@@ -37,28 +37,28 @@ The workflows require the following permissions to be enabled:
 
 ### Unified Build and Deploy (`build-site.yml`)
 
-All site content (landing page, docs, Blazor app) is built in a single workflow and pushed to the `docs-live` branch.
+All site content (landing page, docs, Blazor app) is built in a single workflow and pushed to the pages branch (default: `gh-pages`).
 
-- **Main deploy** (push to `main`): site goes to the root of `docs-live`
-- **PR staging** (pull request): site goes to `docs-live/staging/{pr-number}/`
+- **Main deploy** (push to `main`): site goes to the root of the pages branch
+- **PR staging** (pull request): site goes to `{pages-branch}/staging/{pr-number}/`
 - **PR comment**: bot posts (and updates) a comment with staging preview links
 - **Dry run**: `workflow_dispatch` with `dry_run: true` builds but skips deploy
 
 ### Go Live (`docs-go-live.yml`)
 
-Triggered automatically after a successful build/deploy or cleanup, this workflow publishes the `docs-live` branch to GitHub Pages.
+Triggered automatically after a successful build/deploy or cleanup, this workflow publishes the pages branch to GitHub Pages.
 
 ### PR Cleanup (`docs-cleanup-staging-pr.yml`)
 
-When a PR is closed, the staging directory is removed from `docs-live`.
+When a PR is closed, the staging directory is removed from the pages branch.
 
 ## Workflow Summary
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
-| `build-site.yml` | Push to main / PR open or update | Build site, deploy to `docs-live`, comment on PR |
-| `docs-go-live.yml` | After build/deploy/cleanup | Publish `docs-live` to GitHub Pages |
-| `docs-cleanup-staging-pr.yml` | PR closed | Remove staging directory from `docs-live` |
+| `build-site.yml` | Push to main / PR open or update | Build site, deploy to pages branch (default: `gh-pages`), comment on PR |
+| `docs-go-live.yml` | After build/deploy/cleanup | Publish pages branch to GitHub Pages |
+| `docs-cleanup-staging-pr.yml` | PR closed | Remove staging directory from pages branch |
 | `build-and-run.yml` | Push / PR | Build and run the console app CI check |
 
 ## Local Development

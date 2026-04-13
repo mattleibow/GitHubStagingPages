@@ -18,6 +18,11 @@ on:
         required: false
         default: false
         type: boolean
+      pages_branch:
+        description: 'Branch used to store the deployed pages content'
+        required: false
+        default: 'gh-pages'
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -155,7 +160,7 @@ jobs:
           path: site-out
           retention-days: 1
 
-  # ── Deploy to docs-live branch ────────────────────────────────────────────
+  # ── Deploy to pages branch ───────────────────────────────────────────────
   deploy:
     name: Deploy
     needs: build
@@ -171,9 +176,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout docs-live branch
+      - name: Checkout pages branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAGES_BRANCH: ${{ inputs.pages_branch || 'gh-pages' }}
         run: |
           REMOTE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           git init .
@@ -181,17 +187,17 @@ jobs:
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
 
-          # Fetch docs-live if it exists; otherwise create an orphan branch
-          if git fetch origin docs-live 2>/dev/null; then
-            git checkout -b docs-live origin/docs-live
+          # Fetch pages branch if it exists; otherwise create an orphan branch
+          if git fetch origin "$PAGES_BRANCH" 2>/dev/null; then
+            git checkout -b "$PAGES_BRANCH" "origin/$PAGES_BRANCH"
           else
-            echo "docs-live branch does not exist, creating orphan branch"
-            git checkout --orphan docs-live
+            echo "$PAGES_BRANCH branch does not exist, creating orphan branch"
+            git checkout --orphan "$PAGES_BRANCH"
             git rm -rf . 2>/dev/null || true
             touch .nojekyll
             git add .nojekyll
-            git commit -m "Initialize docs-live branch"
-            git push origin docs-live
+            git commit -m "Initialize $PAGES_BRANCH branch"
+            git push origin "$PAGES_BRANCH"
           fi
 
       - name: Download site artifact
@@ -202,6 +208,8 @@ jobs:
 
       - name: Deploy main site content
         if: needs.build.outputs.is_staging == 'false'
+        env:
+          PAGES_BRANCH: ${{ inputs.pages_branch || 'gh-pages' }}
         run: |
           # Remove everything except staging/ and .git/
           find . -maxdepth 1 \
@@ -219,7 +227,7 @@ jobs:
           git add .
           if ! git diff --cached --quiet; then
             git commit -m "Deploy main site from commit ${{ github.sha }}"
-            git push origin docs-live
+            git push origin "$PAGES_BRANCH"
           else
             echo "No changes to commit"
           fi
@@ -228,6 +236,7 @@ jobs:
         if: needs.build.outputs.is_staging == 'true'
         env:
           PR_NUMBER: ${{ needs.build.outputs.pr_number }}
+          PAGES_BRANCH: ${{ inputs.pages_branch || 'gh-pages' }}
         run: |
           # Validate PR_NUMBER is a positive integer before using in paths
           if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
@@ -247,7 +256,7 @@ jobs:
           git add .nojekyll "staging/$PR_NUMBER"
           if ! git diff --cached --quiet; then
             git commit -m "Deploy staging site for PR #$PR_NUMBER"
-            git push origin docs-live
+            git push origin "$PAGES_BRANCH"
           else
             echo "No changes to commit"
           fi

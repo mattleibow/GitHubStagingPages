@@ -8,6 +8,12 @@ on:
     types:
       - completed
   workflow_dispatch:
+    inputs:
+      pages_branch:
+        description: 'Branch used to store the deployed pages content'
+        required: false
+        default: 'gh-pages'
+        type: string
 
 # Default to no permissions — each job declares only what it needs.
 permissions: {}
@@ -32,10 +38,10 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout docs-live
+      - name: Checkout pages branch
         uses: actions/checkout@v4
         with:
-          ref: docs-live
+          ref: ${{ inputs.pages_branch || 'gh-pages' }}
 
       - name: Remove .git directory
         run: rm -rf .git
