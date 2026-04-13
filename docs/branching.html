@@ -43,7 +43,7 @@
 <h2 id="overview">Overview</h2>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>main          ──── source of truth (code + content)
-docs-live     ──── assembled site content (never edited manually)
+gh-pages      ──── assembled site content (never edited manually)
   ├── index.html, style.css, 404.html, .nojekyll
   ├── docs/         ← Jekyll output
   ├── app/          ← Blazor WASM publish output
@@ -70,13 +70,13 @@ docs-live     ──── assembled site content (never edited manually)
   <p><strong>Never push site output to <code class="language-plaintext highlighter-rouge">main</code>.</strong> The workflows build and deploy automatically.</p>
 </blockquote>
 
-<h2 id="docs-live--assembled-site"><code class="language-plaintext highlighter-rouge">docs-live</code> — Assembled Site</h2>
+<h2 id="gh-pages--assembled-site"><code class="language-plaintext highlighter-rouge">gh-pages</code> — Assembled Site</h2>
 
-<p><code class="language-plaintext highlighter-rouge">docs-live</code> is an <strong>orphan branch</strong> that contains only the assembled, ready-to-serve site. It is the single source used for every GitHub Pages deployment.</p>
+<p><code class="language-plaintext highlighter-rouge">gh-pages</code> is an <strong>orphan branch</strong> that contains only the assembled, ready-to-serve site. It is the single source used for every GitHub Pages deployment.</p>
 
 <h3 id="root-main-content">Root (main content)</h3>
 
-<p>When a commit is pushed to <code class="language-plaintext highlighter-rouge">main</code>, <code class="language-plaintext highlighter-rouge">build-site.yml</code> overwrites the root of <code class="language-plaintext highlighter-rouge">docs-live</code> with the freshly built site — but it <strong>preserves the <code class="language-plaintext highlighter-rouge">staging/</code> directory</strong>:</p>
+<p>When a commit is pushed to <code class="language-plaintext highlighter-rouge">main</code>, <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code> overwrites the root of <code class="language-plaintext highlighter-rouge">gh-pages</code> with the freshly built site — but it <strong>preserves the <code class="language-plaintext highlighter-rouge">staging/</code> directory</strong>:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>find <span class="nb">.</span> <span class="nt">-maxdepth</span> 1 <span class="se">\</span>
     <span class="nt">-not</span> <span class="nt">-name</span> <span class="s1">'staging'</span> <span class="se">\</span>
@@ -98,13 +98,13 @@ docs-live     ──── assembled site content (never edited manually)
 
 <h3 id="cleanup">Cleanup</h3>
 
-<p>When a PR is closed, its <code class="language-plaintext highlighter-rouge">staging/{pr-number}/</code> directory is deleted from <code class="language-plaintext highlighter-rouge">docs-live</code> and Pages is re-deployed. The main site content is untouched.</p>
+<p>When a PR is closed, its <code class="language-plaintext highlighter-rouge">staging/{pr-number}/</code> directory is deleted from <code class="language-plaintext highlighter-rouge">gh-pages</code> and Pages is re-deployed. The main site content is untouched.</p>
 
 <h2 id="why-not-deploy-directly-from-main">Why Not Deploy Directly From <code class="language-plaintext highlighter-rouge">main</code>?</h2>
 
 <p>Deploying from <code class="language-plaintext highlighter-rouge">main</code> directly (e.g., <code class="language-plaintext highlighter-rouge">actions/upload-pages-artifact</code> on the source checkout) would mean the live Pages site could only ever contain the full current state of main — no room for staging sub-directories.</p>
 
-<p>The <code class="language-plaintext highlighter-rouge">docs-live</code> branch acts as a <strong>mutable staging area</strong> that can hold both the latest main content and any number of PR previews simultaneously.</p>
+<p>The <code class="language-plaintext highlighter-rouge">gh-pages</code> branch acts as a <strong>mutable staging area</strong> that can hold both the latest main content and any number of PR previews simultaneously.</p>
 
 <h2 id="base-href-rewrites">Base Href Rewrites</h2>
 
@@ -139,7 +139,7 @@ docs-live     ──── assembled site content (never edited manually)
 
 <h2 id="nojekyll"><code class="language-plaintext highlighter-rouge">.nojekyll</code></h2>
 
-<p>A <code class="language-plaintext highlighter-rouge">.nojekyll</code> file is always present at the root of <code class="language-plaintext highlighter-rouge">docs-live</code>. This tells GitHub Pages <strong>not</strong> to run Jekyll on the branch content — the site is already pre-built. Without this file, GitHub Pages would ignore directories starting with <code class="language-plaintext highlighter-rouge">_</code> (like <code class="language-plaintext highlighter-rouge">_framework/</code> used by Blazor).</p>
+<p>A <code class="language-plaintext highlighter-rouge">.nojekyll</code> file is always present at the root of <code class="language-plaintext highlighter-rouge">gh-pages</code>. This tells GitHub Pages <strong>not</strong> to run Jekyll on the branch content — the site is already pre-built. Without this file, GitHub Pages would ignore directories starting with <code class="language-plaintext highlighter-rouge">_</code> (like <code class="language-plaintext highlighter-rouge">_framework/</code> used by Blazor).</p>
 
 <p><a href="index">← Back to Home</a></p>
 

@@ -40,7 +40,7 @@
 
 <p>This page describes each GitHub Actions workflow in <code class="language-plaintext highlighter-rouge">.github/workflows/</code>.</p>
 
-<h2 id="build-siteyml--site-build-and-deploy"><code class="language-plaintext highlighter-rouge">build-site.yml</code> — Site: Build and Deploy</h2>
+<h2 id="pages-staging-deployyml--pages-staging---build-and-deploy"><code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code> — Pages: Staging - Build and Deploy</h2>
 
 <p><strong>Triggers:</strong></p>
 <ul>
@@ -54,7 +54,7 @@
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>build → deploy → comment (PR only)
 </code></pre></div></div>
 
-<p>The <code class="language-plaintext highlighter-rouge">deploy</code> job pushes built content to the <code class="language-plaintext highlighter-rouge">docs-live</code> branch. The actual GitHub Pages publish is handled by a separate <code class="language-plaintext highlighter-rouge">docs-go-live.yml</code> that watches for this workflow to complete.</p>
+<p>The <code class="language-plaintext highlighter-rouge">deploy</code> job pushes built content to the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch. The actual GitHub Pages publish is handled by a separate <code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> that watches for this workflow to complete.</p>
 
 <h3 id="build-job"><code class="language-plaintext highlighter-rouge">build</code> job</h3>
 
@@ -87,14 +87,14 @@
 
 <h3 id="deploy-job"><code class="language-plaintext highlighter-rouge">deploy</code> job</h3>
 
-<p>Pushes the built artifact into the <code class="language-plaintext highlighter-rouge">docs-live</code> branch:</p>
+<p>Pushes the built artifact into the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch:</p>
 
 <ul>
   <li><strong>Main push:</strong> replaces all root content (preserving <code class="language-plaintext highlighter-rouge">staging/</code>)</li>
   <li><strong>PR:</strong> writes to <code class="language-plaintext highlighter-rouge">staging/{pr-number}/</code></li>
 </ul>
 
-<p>If <code class="language-plaintext highlighter-rouge">docs-live</code> does not exist, it is created as an orphan branch.</p>
+<p>If <code class="language-plaintext highlighter-rouge">gh-pages</code> does not exist, it is created as an orphan branch.</p>
 
 <p><strong>Concurrency:</strong> main deploys use the group <code class="language-plaintext highlighter-rouge">docs-deploy-main</code>. Each PR deploy uses the group <code class="language-plaintext highlighter-rouge">docs-deploy-pr-{pr-number}</code>. <code class="language-plaintext highlighter-rouge">cancel-in-progress: true</code> means a newer commit supersedes an older build in flight.</p>
 
@@ -104,25 +104,25 @@
 
 <hr />
 
-<h2 id="docs-go-liveyml--docs-go-live"><code class="language-plaintext highlighter-rouge">docs-go-live.yml</code> — Docs: Go Live!</h2>
+<h2 id="pages-go-liveyml--pages-go-live"><code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> — Pages: Go Live</h2>
 
 <p><strong>Triggers:</strong></p>
 <ul>
-  <li><code class="language-plaintext highlighter-rouge">workflow_run</code> on completion of “Site - Build and Deploy” or “Site - PR Staging - Cleanup”</li>
+  <li><code class="language-plaintext highlighter-rouge">workflow_run</code> on completion of “Pages - Staging - Build and Deploy” or “Pages - Staging - Cleanup”</li>
   <li><code class="language-plaintext highlighter-rouge">workflow_dispatch</code> (manual re-deploy)</li>
 </ul>
 
-<p>This is the only place GitHub Pages is deployed. It is triggered automatically whenever either <code class="language-plaintext highlighter-rouge">build-site.yml</code> or <code class="language-plaintext highlighter-rouge">docs-cleanup-staging-pr.yml</code> completes successfully.</p>
+<p>This is the only place GitHub Pages is deployed. It is triggered automatically whenever either <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code> or <code class="language-plaintext highlighter-rouge">pages-staging-cleanup.yml</code> completes successfully.</p>
 
 <blockquote>
-  <p><strong>Important:</strong> <code class="language-plaintext highlighter-rouge">workflow_run</code> always executes from the <strong>default branch</strong> (<code class="language-plaintext highlighter-rouge">main</code>). This means the <code class="language-plaintext highlighter-rouge">docs-go-live.yml</code> on <code class="language-plaintext highlighter-rouge">main</code> handles go-live for all pushes and PRs — you only need this file correctly set up on <code class="language-plaintext highlighter-rouge">main</code>.</p>
+  <p><strong>Important:</strong> <code class="language-plaintext highlighter-rouge">workflow_run</code> always executes from the <strong>default branch</strong> (<code class="language-plaintext highlighter-rouge">main</code>). This means the <code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> on <code class="language-plaintext highlighter-rouge">main</code> handles go-live for all pushes and PRs — you only need this file correctly set up on <code class="language-plaintext highlighter-rouge">main</code>.</p>
 </blockquote>
 
 <p><strong>Concurrency:</strong> all go-live runs share the group <code class="language-plaintext highlighter-rouge">docs-go-live</code> with <code class="language-plaintext highlighter-rouge">cancel-in-progress: true</code>, so only the latest wins.</p>
 
 <hr />
 
-<h2 id="docs-cleanup-staging-pryml--site-pr-staging-cleanup"><code class="language-plaintext highlighter-rouge">docs-cleanup-staging-pr.yml</code> — Site: PR Staging Cleanup</h2>
+<h2 id="pages-staging-cleanupyml--pages-staging-cleanup"><code class="language-plaintext highlighter-rouge">pages-staging-cleanup.yml</code> — Pages: Staging Cleanup</h2>
 
 <p><strong>Triggers:</strong> Pull request closed against <code class="language-plaintext highlighter-rouge">main</code></p>
 
@@ -131,11 +131,11 @@
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cleanup
 </code></pre></div></div>
 
-<p>Removes <code class="language-plaintext highlighter-rouge">staging/{pr-number}/</code> from the <code class="language-plaintext highlighter-rouge">docs-live</code> branch and pushes. The <code class="language-plaintext highlighter-rouge">docs-go-live.yml</code> workflow then fires automatically (via <code class="language-plaintext highlighter-rouge">workflow_run</code>) to re-deploy GitHub Pages with the staging directory gone.</p>
+<p>Removes <code class="language-plaintext highlighter-rouge">staging/{pr-number}/</code> from the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch and pushes. The <code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> workflow then fires automatically (via <code class="language-plaintext highlighter-rouge">workflow_run</code>) to re-deploy GitHub Pages with the staging directory gone.</p>
 
 <p>The PR number is validated as a positive integer before being used in any file path. If the staging directory does not exist, the job exits cleanly.</p>
 
-<p><strong>Concurrency:</strong> Uses the group <code class="language-plaintext highlighter-rouge">docs-deploy-pr-{pr-number}</code> — the same group as the corresponding staging deploy job in <code class="language-plaintext highlighter-rouge">build-site.yml</code>. This ensures cleanup always waits for any in-progress staging deploy for the same PR to finish before removing the directory.</p>
+<p><strong>Concurrency:</strong> Uses the group <code class="language-plaintext highlighter-rouge">docs-deploy-pr-{pr-number}</code> — the same group as the corresponding staging deploy job in <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code>. This ensures cleanup always waits for any in-progress staging deploy for the same PR to finish before removing the directory.</p>
 
 <hr />
 
@@ -150,20 +150,20 @@
 <h2 id="workflow-interaction-diagram">Workflow Interaction Diagram</h2>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Push to main
-  └─ build-site.yml (build → deploy)      writes root of docs-live
-       └─ docs-go-live.yml (workflow_run)  deploys docs-live → Pages
+  └─ pages-staging-deploy.yml (build → deploy)      writes root of gh-pages
+       └─ pages-go-live.yml (workflow_run)           deploys gh-pages → Pages
 
 PR opened/updated
-  └─ build-site.yml (build → deploy → comment)  writes staging/{pr}/ in docs-live
-       └─ docs-go-live.yml (workflow_run)        deploys docs-live → Pages
+  └─ pages-staging-deploy.yml (build → deploy → comment)  writes staging/{pr}/ in gh-pages
+       └─ pages-go-live.yml (workflow_run)                 deploys gh-pages → Pages
 
 PR closed
-  └─ docs-cleanup-staging-pr.yml (cleanup)  removes staging/{pr}/ from docs-live
-       └─ docs-go-live.yml (workflow_run)   deploys docs-live → Pages
+  └─ pages-staging-cleanup.yml (cleanup)  removes staging/{pr}/ from gh-pages
+       └─ pages-go-live.yml (workflow_run)   deploys gh-pages → Pages
 </code></pre></div></div>
 
 <blockquote>
-  <p><code class="language-plaintext highlighter-rouge">docs-go-live.yml</code> runs from <code class="language-plaintext highlighter-rouge">main</code> and handles all GitHub Pages deployments, regardless of which branch or PR triggered the upstream workflow.</p>
+  <p><code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> runs from <code class="language-plaintext highlighter-rouge">main</code> and handles all GitHub Pages deployments, regardless of which branch or PR triggered the upstream workflow.</p>
 </blockquote>
 
 <p><a href="index">← Back to Home</a></p>

@@ -52,18 +52,18 @@
 </ol>
 
 <blockquote>
-  <p>⚠️ Do <strong>not</strong> set the source to <code class="language-plaintext highlighter-rouge">gh-pages</code> or <code class="language-plaintext highlighter-rouge">docs-live</code> branches. The workflow uses <code class="language-plaintext highlighter-rouge">actions/deploy-pages</code> which requires the <strong>GitHub Actions</strong> source.</p>
+  <p>⚠️ Do <strong>not</strong> set the source to a branch directly. The workflow uses <code class="language-plaintext highlighter-rouge">actions/deploy-pages</code> which requires the <strong>GitHub Actions</strong> source.</p>
 </blockquote>
 
 <h3 id="custom-domain-optional">Custom Domain (Optional)</h3>
 
-<p>If you want a custom domain, add it in the Pages settings. The <code class="language-plaintext highlighter-rouge">docs-live</code> branch root should also contain a <code class="language-plaintext highlighter-rouge">CNAME</code> file with the domain name.</p>
+<p>If you want a custom domain, add it in the Pages settings. The <code class="language-plaintext highlighter-rouge">gh-pages</code> branch root should also contain a <code class="language-plaintext highlighter-rouge">CNAME</code> file with the domain name.</p>
 
 <h2 id="actions-permissions">Actions Permissions</h2>
 
 <h3 id="workflow-permissions">Workflow Permissions</h3>
 
-<p>The deploy workflow needs to commit to the <code class="language-plaintext highlighter-rouge">docs-live</code> branch and post comments on pull requests.</p>
+<p>The deploy workflow needs to commit to the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch and post comments on pull requests.</p>
 
 <ol>
   <li>Go to <strong>Settings → Actions → General</strong></li>
@@ -77,7 +77,7 @@
 
 <h3 id="the-github-pages-environment">The <code class="language-plaintext highlighter-rouge">github-pages</code> Environment</h3>
 
-<p>GitHub automatically creates a <code class="language-plaintext highlighter-rouge">github-pages</code> environment when you enable GitHub Pages via Actions. The <code class="language-plaintext highlighter-rouge">go-live</code> job in <code class="language-plaintext highlighter-rouge">build-site.yml</code> targets this environment:</p>
+<p>GitHub automatically creates a <code class="language-plaintext highlighter-rouge">github-pages</code> environment when you enable GitHub Pages via Actions. The <code class="language-plaintext highlighter-rouge">deploy</code> job in <code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> targets this environment:</p>
 
 <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">environment</span><span class="pi">:</span>
   <span class="na">name</span><span class="pi">:</span> <span class="s">github-pages</span>
@@ -86,9 +86,9 @@
 
 <p>You can optionally require manual approval before deployments go live by configuring environment protection rules at <strong>Settings → Environments → github-pages</strong>.</p>
 
-<h2 id="the-docs-live-branch">The <code class="language-plaintext highlighter-rouge">docs-live</code> Branch</h2>
+<h2 id="the-gh-pages-branch">The <code class="language-plaintext highlighter-rouge">gh-pages</code> Branch</h2>
 
-<p>The <code class="language-plaintext highlighter-rouge">docs-live</code> branch is the staging area for all published content. It is:</p>
+<p>The <code class="language-plaintext highlighter-rouge">gh-pages</code> branch is the staging area for all published content. It is:</p>
 
 <ul>
   <li>Created automatically by the first workflow run</li>
@@ -131,8 +131,8 @@ dotnet run <span class="nt">--project</span> src/GreetingApp <span class="nt">--
   <li>Replace <code class="language-plaintext highlighter-rouge">docs/</code> content with your own documentation</li>
   <li>Replace <code class="language-plaintext highlighter-rouge">src/GreetingApp.Blazor/</code> with your own Blazor app (or remove it)</li>
   <li>Update <code class="language-plaintext highlighter-rouge">site/index.html</code> with your own landing page</li>
-  <li>Update the base URLs in <code class="language-plaintext highlighter-rouge">build-site.yml</code> (search for <code class="language-plaintext highlighter-rouge">GitHubStagingPages</code>)</li>
-  <li>Update the PR comment URLs in <code class="language-plaintext highlighter-rouge">build-site.yml</code></li>
+  <li>Update the base URLs in <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code> (search for <code class="language-plaintext highlighter-rouge">GitHubStagingPages</code>)</li>
+  <li>Update the PR comment URLs in <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code></li>
 </ol>
 
 <p><a href="index">← Back to Home</a></p>

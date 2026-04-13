@@ -81,12 +81,12 @@
 git push
 </code></pre></div></div>
 
-<p>The <code class="language-plaintext highlighter-rouge">build-site.yml</code> workflow will:</p>
+<p>The <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code> workflow will:</p>
 <ol>
   <li>Build the Jekyll docs</li>
   <li>Publish the Blazor app</li>
-  <li>Push everything to the <code class="language-plaintext highlighter-rouge">docs-live</code> branch</li>
-  <li>Deploy <code class="language-plaintext highlighter-rouge">docs-live</code> to GitHub Pages</li>
+  <li>Push everything to the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch</li>
+  <li>Deploy <code class="language-plaintext highlighter-rouge">gh-pages</code> to GitHub Pages</li>
 </ol>
 
 <p>Your site will be live at:</p>
@@ -117,7 +117,7 @@ git push <span class="nt">-u</span> origin <span class="nb">test</span>/staging-
 
 <h2 id="step-6--close-the-pr">Step 6 — Close the PR</h2>
 
-<p>When the PR is closed (merged or abandoned), the staging directory is automatically removed from <code class="language-plaintext highlighter-rouge">docs-live</code> and Pages is updated.</p>
+<p>When the PR is closed (merged or abandoned), the staging directory is automatically removed from <code class="language-plaintext highlighter-rouge">gh-pages</code> and Pages is updated.</p>
 
 <hr />
 
