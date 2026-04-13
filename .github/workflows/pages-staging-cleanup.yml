@@ -1,4 +1,4 @@
-name: "Site - PR Staging - Cleanup"
+name: "Pages - Staging - Cleanup"
 
 on:
   pull_request:
