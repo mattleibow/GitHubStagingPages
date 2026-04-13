@@ -252,10 +252,50 @@ jobs:
             echo "No changes to commit"
           fi
 
+  # ── Publish docs-live to GitHub Pages ────────────────────────────────────
+  go-live:
+    name: Go Live
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    if: |
+      !inputs.dry_run &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    # Serialize go-live runs so the latest wins and concurrent builds don't race.
+    concurrency:
+      group: "docs-go-live"
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout docs-live
+        uses: actions/checkout@v4
+        with:
+          ref: docs-live
+
+      - name: Remove .git directory
+        run: rm -rf .git
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
   # ── Comment on PR with preview URL ───────────────────────────────────────
   comment:
     name: Comment on PR
-    needs: [build, deploy]
+    needs: [build, go-live]
     runs-on: ubuntu-latest
     if: |
       needs.build.outputs.is_staging == 'true' &&

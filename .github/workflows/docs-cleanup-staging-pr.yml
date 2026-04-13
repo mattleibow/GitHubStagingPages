@@ -60,3 +60,40 @@ jobs:
           else
             echo "No staging directory found for PR #$PR_NUMBER"
           fi
+
+  # ── Publish docs-live to GitHub Pages after cleanup ───────────────────────
+  go-live:
+    name: Go Live
+    needs: cleanup
+    runs-on: ubuntu-latest
+    concurrency:
+      group: "docs-go-live"
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout docs-live
+        uses: actions/checkout@v4
+        with:
+          ref: docs-live
+
+      - name: Remove .git directory
+        run: rm -rf .git
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
