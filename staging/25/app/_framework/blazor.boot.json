@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "GreetingApp.Blazor",
   "resources": {
-    "hash": "sha256-IKLNEWNj6wU89Ec1QJABoNAzHewsPWEvG41KEwyZblk=",
+    "hash": "sha256-FJVTsGyrANdnhSwdQ5ST1iITfs8bwewB0T0HM2FBojw=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-A16ka545FHaB+QXjyJ4exXh7XpBAAIFnX8YkC4xAng8="
     },
@@ -47,7 +47,7 @@
       "System.Text.Json.wasm": "sha256-ZbNmNkx0V+8CKB0xg1XRpgJTlnEyAypL7svkXmzVWTY=",
       "System.Text.RegularExpressions.wasm": "sha256-vTjmo8W+mDOdlHRP0L2XPX6WOPBjjNP1eAT8UWYxM8I=",
       "System.Private.CoreLib.wasm": "sha256-5qpcPuRwvcS1JzLoP6U66i9Oxtr/eDQp1UlEP39CBoA=",
-      "GreetingApp.Blazor.wasm": "sha256-G1ysckTVXwkb127baS9cpa5uWtmFHX+kCHxxEi4uV+I="
+      "GreetingApp.Blazor.wasm": "sha256-lPq9/KI46VZM+gzkjDY3ZuNBKWlHlvLZkGkhy9j24ko="
     }
   },
   "cacheBootResources": true,
