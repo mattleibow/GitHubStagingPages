@@ -1,4 +1,4 @@
-name: Build and Test
+name: "Pages - App - Build and Test"
 
 on:
   push:

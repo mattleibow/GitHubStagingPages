@@ -1,10 +1,10 @@
-name: "Docs - Go Live!"
+name: "Pages - Go Live"
 
 on:
   workflow_run:
     workflows:
-      - "Site - Build and Deploy"
-      - "Site - PR Staging - Cleanup"
+      - "Pages - Build and Deploy"
+      - "Pages - Staging - Cleanup"
     types:
       - completed
   workflow_dispatch:
