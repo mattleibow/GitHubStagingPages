@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Workflows Reference | GitHub Staging Pages</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Workflows Reference" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A guide to setting up multi-section sites with PR staging on GitHub Pages" />
+<meta property="og:description" content="A guide to setting up multi-section sites with PR staging on GitHub Pages" />
+<link rel="canonical" href="https://mattleibow.github.io/GitHubStagingPages/GitHubStagingPages/staging/27/docs/workflows.html" />
+<meta property="og:url" content="https://mattleibow.github.io/GitHubStagingPages/GitHubStagingPages/staging/27/docs/workflows.html" />
+<meta property="og:site_name" content="GitHub Staging Pages" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Workflows Reference" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"A guide to setting up multi-section sites with PR staging on GitHub Pages","headline":"Workflows Reference","url":"https://mattleibow.github.io/GitHubStagingPages/GitHubStagingPages/staging/27/docs/workflows.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/GitHubStagingPages/staging/27/docs/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://mattleibow.github.io/GitHubStagingPages/GitHubStagingPages/staging/27/docs/feed.xml" title="GitHub Staging Pages" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/GitHubStagingPages/staging/27/docs/">GitHub Staging Pages</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/GitHubStagingPages/staging/27/docs/branching.html">Branch Strategy</a><a class="page-link" href="/GitHubStagingPages/staging/27/docs/">Home</a><a class="page-link" href="/GitHubStagingPages/staging/27/docs/quickstart.html">Quick Start</a><a class="page-link" href="/GitHubStagingPages/staging/27/docs/setup.html">Repository Setup</a><a class="page-link" href="/GitHubStagingPages/staging/27/docs/workflows.html">Workflows Reference</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <h1 id="workflows-reference">Workflows Reference</h1>
+
+<p>This page describes each GitHub Actions workflow in <code class="language-plaintext highlighter-rouge">.github/workflows/</code>.</p>
+
+<h2 id="pages-staging-deployyml--pages-staging---build-and-deploy"><code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code> — Pages: Staging - Build and Deploy</h2>
+
+<p><strong>Triggers:</strong></p>
+<ul>
+  <li>Push to <code class="language-plaintext highlighter-rouge">main</code></li>
+  <li>Pull request opened, synchronized, or reopened against <code class="language-plaintext highlighter-rouge">main</code></li>
+  <li>Manual (<code class="language-plaintext highlighter-rouge">workflow_dispatch</code>) with optional <code class="language-plaintext highlighter-rouge">pr_number</code> and <code class="language-plaintext highlighter-rouge">dry_run</code> inputs</li>
+</ul>
+
+<p><strong>What it does:</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>build → deploy → comment (PR only)
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">deploy</code> job pushes built content to the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch. The actual GitHub Pages publish is handled by a separate <code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> that watches for this workflow to complete.</p>
+
+<h3 id="build-job"><code class="language-plaintext highlighter-rouge">build</code> job</h3>
+
+<p>Runs on every trigger. Produces a site artifact containing:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Output path</th>
+      <th>Built from</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">index.html</code>, <code class="language-plaintext highlighter-rouge">style.css</code>, <code class="language-plaintext highlighter-rouge">404.html</code></td>
+      <td><code class="language-plaintext highlighter-rouge">site/</code> (static landing page)</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docs/</code></td>
+      <td>Jekyll output from <code class="language-plaintext highlighter-rouge">docs/</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">app/</code></td>
+      <td>Blazor WASM publish output</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The Blazor <code class="language-plaintext highlighter-rouge">&lt;base href&gt;</code> is rewritten to the correct deployment path (e.g., <code class="language-plaintext highlighter-rouge">/GitHubStagingPages/app/</code> for main, <code class="language-plaintext highlighter-rouge">/GitHubStagingPages/staging/3/app/</code> for PR #3).</p>
+
+<h3 id="deploy-job"><code class="language-plaintext highlighter-rouge">deploy</code> job</h3>
+
+<p>Pushes the built artifact into the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch:</p>
+
+<ul>
+  <li><strong>Main push:</strong> replaces all root content (preserving <code class="language-plaintext highlighter-rouge">staging/</code>)</li>
+  <li><strong>PR:</strong> writes to <code class="language-plaintext highlighter-rouge">staging/{pr-number}/</code></li>
+</ul>
+
+<p>If <code class="language-plaintext highlighter-rouge">gh-pages</code> does not exist, it is created as an orphan branch.</p>
+
+<p><strong>Concurrency:</strong> main deploys use the group <code class="language-plaintext highlighter-rouge">docs-deploy-main</code>. Each PR deploy uses the group <code class="language-plaintext highlighter-rouge">docs-deploy-pr-{pr-number}</code>. <code class="language-plaintext highlighter-rouge">cancel-in-progress: true</code> means a newer commit supersedes an older build in flight.</p>
+
+<h3 id="comment-job-pr-only"><code class="language-plaintext highlighter-rouge">comment</code> job (PR only)</h3>
+
+<p>Posts (or updates) a bot comment on the PR with links to the staging preview. The comment is identified by a hidden HTML marker so it is updated in-place on subsequent pushes rather than creating new comments.</p>
+
+<hr />
+
+<h2 id="pages-go-liveyml--pages-go-live"><code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> — Pages: Go Live</h2>
+
+<p><strong>Triggers:</strong></p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">workflow_run</code> on completion of “Pages - Staging - Build and Deploy” or “Pages - Staging - Cleanup”</li>
+  <li><code class="language-plaintext highlighter-rouge">workflow_dispatch</code> (manual re-deploy)</li>
+</ul>
+
+<p>This is the only place GitHub Pages is deployed. It is triggered automatically whenever either <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code> or <code class="language-plaintext highlighter-rouge">pages-staging-cleanup.yml</code> completes successfully.</p>
+
+<blockquote>
+  <p><strong>Important:</strong> <code class="language-plaintext highlighter-rouge">workflow_run</code> always executes from the <strong>default branch</strong> (<code class="language-plaintext highlighter-rouge">main</code>). This means the <code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> on <code class="language-plaintext highlighter-rouge">main</code> handles go-live for all pushes and PRs — you only need this file correctly set up on <code class="language-plaintext highlighter-rouge">main</code>.</p>
+</blockquote>
+
+<p><strong>Concurrency:</strong> all go-live runs share the group <code class="language-plaintext highlighter-rouge">docs-go-live</code> with <code class="language-plaintext highlighter-rouge">cancel-in-progress: true</code>, so only the latest wins.</p>
+
+<hr />
+
+<h2 id="pages-staging-cleanupyml--pages-staging-cleanup"><code class="language-plaintext highlighter-rouge">pages-staging-cleanup.yml</code> — Pages: Staging Cleanup</h2>
+
+<p><strong>Triggers:</strong> Pull request closed against <code class="language-plaintext highlighter-rouge">main</code></p>
+
+<p><strong>What it does:</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cleanup
+</code></pre></div></div>
+
+<p>Removes <code class="language-plaintext highlighter-rouge">staging/{pr-number}/</code> from the <code class="language-plaintext highlighter-rouge">gh-pages</code> branch and pushes. The <code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> workflow then fires automatically (via <code class="language-plaintext highlighter-rouge">workflow_run</code>) to re-deploy GitHub Pages with the staging directory gone.</p>
+
+<p>The PR number is validated as a positive integer before being used in any file path. If the staging directory does not exist, the job exits cleanly.</p>
+
+<p><strong>Concurrency:</strong> Uses the group <code class="language-plaintext highlighter-rouge">docs-deploy-pr-{pr-number}</code> — the same group as the corresponding staging deploy job in <code class="language-plaintext highlighter-rouge">pages-staging-deploy.yml</code>. This ensures cleanup always waits for any in-progress staging deploy for the same PR to finish before removing the directory.</p>
+
+<hr />
+
+<h2 id="build-and-runyml--build-and-test"><code class="language-plaintext highlighter-rouge">build-and-run.yml</code> — Build and Test</h2>
+
+<p><strong>Triggers:</strong> Push to <code class="language-plaintext highlighter-rouge">main</code>, pull request against <code class="language-plaintext highlighter-rouge">main</code></p>
+
+<p>Basic CI: restores, builds, and runs the console app to verify the .NET solution compiles and produces correct output.</p>
+
+<hr />
+
+<h2 id="workflow-interaction-diagram">Workflow Interaction Diagram</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Push to main
+  └─ pages-staging-deploy.yml (build → deploy)      writes root of gh-pages
+       └─ pages-go-live.yml (workflow_run)           deploys gh-pages → Pages
+
+PR opened/updated
+  └─ pages-staging-deploy.yml (build → deploy → comment)  writes staging/{pr}/ in gh-pages
+       └─ pages-go-live.yml (workflow_run)                 deploys gh-pages → Pages
+
+PR closed
+  └─ pages-staging-cleanup.yml (cleanup)  removes staging/{pr}/ from gh-pages
+       └─ pages-go-live.yml (workflow_run)   deploys gh-pages → Pages
+</code></pre></div></div>
+
+<blockquote>
+  <p><code class="language-plaintext highlighter-rouge">pages-go-live.yml</code> runs from <code class="language-plaintext highlighter-rouge">main</code> and handles all GitHub Pages deployments, regardless of which branch or PR triggered the upstream workflow.</p>
+</blockquote>
+
+<p><a href="index">← Back to Home</a></p>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/GitHubStagingPages/staging/27/docs/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">GitHub Staging Pages</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">GitHub Staging Pages</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>A guide to setting up multi-section sites with PR staging on GitHub Pages</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
