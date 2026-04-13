@@ -44,11 +44,11 @@ git commit --allow-empty -m "chore: trigger first deployment"
 git push
 ```
 
-The `build-site.yml` workflow will:
+The `pages-staging-deploy.yml` workflow will:
 1. Build the Jekyll docs
 2. Publish the Blazor app
-3. Push everything to the `docs-live` branch
-4. Deploy `docs-live` to GitHub Pages
+3. Push everything to the `gh-pages` branch
+4. Deploy `gh-pages` to GitHub Pages
 
 Your site will be live at:
 ```
@@ -74,7 +74,7 @@ https://{your-username}.github.io/{your-repo}/
 
 ## Step 6 — Close the PR
 
-When the PR is closed (merged or abandoned), the staging directory is automatically removed from `docs-live` and Pages is updated.
+When the PR is closed (merged or abandoned), the staging directory is automatically removed from `gh-pages` and Pages is updated.
 
 ---
 

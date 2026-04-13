@@ -16,17 +16,17 @@ The site is deployed via GitHub Actions artifacts — **not** from a branch dire
 1. Go to **Settings → Pages**
 2. Set **Source** to **GitHub Actions**
 
-> ⚠️ Do **not** set the source to `gh-pages` or `docs-live` branches. The workflow uses `actions/deploy-pages` which requires the **GitHub Actions** source.
+> ⚠️ Do **not** set the source to a branch directly. The workflow uses `actions/deploy-pages` which requires the **GitHub Actions** source.
 
 ### Custom Domain (Optional)
 
-If you want a custom domain, add it in the Pages settings. The `docs-live` branch root should also contain a `CNAME` file with the domain name.
+If you want a custom domain, add it in the Pages settings. The `gh-pages` branch root should also contain a `CNAME` file with the domain name.
 
 ## Actions Permissions
 
 ### Workflow Permissions
 
-The deploy workflow needs to commit to the `docs-live` branch and post comments on pull requests.
+The deploy workflow needs to commit to the `gh-pages` branch and post comments on pull requests.
 
 1. Go to **Settings → Actions → General**
 2. Under **Workflow permissions**:
@@ -35,7 +35,7 @@ The deploy workflow needs to commit to the `docs-live` branch and post comments 
 
 ### The `github-pages` Environment
 
-GitHub automatically creates a `github-pages` environment when you enable GitHub Pages via Actions. The `go-live` job in `build-site.yml` targets this environment:
+GitHub automatically creates a `github-pages` environment when you enable GitHub Pages via Actions. The `deploy` job in `pages-go-live.yml` targets this environment:
 
 ```yaml
 environment:
@@ -45,9 +45,9 @@ environment:
 
 You can optionally require manual approval before deployments go live by configuring environment protection rules at **Settings → Environments → github-pages**.
 
-## The `docs-live` Branch
+## The `gh-pages` Branch
 
-The `docs-live` branch is the staging area for all published content. It is:
+The `gh-pages` branch is the staging area for all published content. It is:
 
 - Created automatically by the first workflow run
 - **Never edited manually** — always written by the workflows
@@ -90,7 +90,7 @@ To use this pattern in your own project:
 1. Replace `docs/` content with your own documentation
 2. Replace `src/GreetingApp.Blazor/` with your own Blazor app (or remove it)
 3. Update `site/index.html` with your own landing page
-4. Update the base URLs in `build-site.yml` (search for `GitHubStagingPages`)
-5. Update the PR comment URLs in `build-site.yml`
+4. Update the base URLs in `pages-staging-deploy.yml` (search for `GitHubStagingPages`)
+5. Update the PR comment URLs in `pages-staging-deploy.yml`
 
 [← Back to Home](index)
