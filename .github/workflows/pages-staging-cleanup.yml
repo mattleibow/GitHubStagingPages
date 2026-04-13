@@ -1,9 +1,22 @@
 name: "Pages - Staging - Cleanup"
 
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║ TEMPLATE GUIDE                                                           ║
+# ║                                                                          ║
+# ║ [STAGING] This entire workflow supports PR staging previews.             ║
+# ║ It removes the staging/{pr-number}/ directory from the gh-pages          ║
+# ║ branch when a PR is closed. The pages-go-live.yml workflow then          ║
+# ║ re-deploys Pages automatically.                                          ║
+# ║                                                                          ║
+# ║ REMOVE this entire file if you don't want PR staging previews.           ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
 on:
+  # [STAGING] Trigger cleanup when a PR is closed (merged or abandoned)
   pull_request:
     branches: [ main ]
     types: [ closed ]
+  # [STAGING] Allow manual cleanup of a specific PR number
   workflow_dispatch:
     inputs:
       pr_number:
@@ -11,22 +24,27 @@ on:
         required: true
         type: string
 
-# Default to no permissions — each job declares only what it needs.
+# [CORE] Default to no permissions — each job declares only what it needs.
 permissions: {}
 
 env:
+  # [CORE] Must match the PAGES_BRANCH in pages-staging-deploy.yml
   PAGES_BRANCH: gh-pages
+  # [STAGING] Must match the STAGING_PATH in pages-staging-deploy.yml
   STAGING_PATH: staging
+  # [CORE] Git identity used for automated commits
   GIT_COMMIT_EMAIL: action@github.com
   GIT_COMMIT_NAME: GitHub Action
 
-# Each PR cleanup gets its own group, matching the deploy group for the same PR.
+# [STAGING] Each PR cleanup gets its own concurrency group, matching the
+# deploy group for the same PR so cleanup waits for any in-progress deploy.
 concurrency:
   group: "docs-deploy-pr-${{ github.event.number }}"
   cancel-in-progress: false
 
 jobs:
   cleanup:
+    # [STAGING] Skip cleanup for fork PRs (they don't have staging deploys)
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event.pull_request.head.repo.full_name == github.repository
@@ -34,11 +52,14 @@ jobs:
     permissions:
       contents: write
     steps:
+      # [STAGING] Check out the repo so we can switch to the pages branch
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # [STAGING] Remove the staging directory for this PR from the pages
+      # branch and push. The pages-go-live.yml workflow will then re-deploy.
       - name: Remove staging directory from pages branch
         env:
           PR_NUMBER: ${{ github.event.number || inputs.pr_number }}

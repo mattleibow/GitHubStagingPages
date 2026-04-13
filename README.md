@@ -43,4 +43,4 @@ dotnet run --project src/GreetingApp.Blazor
 
 ## Setup
 
-To enable GitHub Pages for your own repository, see [GitHub Pages Setup Guide](GITHUB_PAGES_SETUP.md).
+To enable GitHub Pages for your own repository, see the [Repository Setup](docs/setup.md) documentation.

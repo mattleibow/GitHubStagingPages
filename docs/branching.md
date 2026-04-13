@@ -11,7 +11,7 @@ This page explains how the three key branches work together to deliver both a li
 
 ```
 main          ──── source of truth (code + content)
-docs-live     ──── assembled site content (never edited manually)
+gh-pages      ──── assembled site content (never edited manually)
   ├── index.html, style.css, 404.html, .nojekyll
   ├── docs/         ← Jekyll output
   ├── app/          ← Blazor WASM publish output
@@ -34,13 +34,13 @@ All development happens on `main` (or short-lived feature branches that PR into 
 
 > **Never push site output to `main`.** The workflows build and deploy automatically.
 
-## `docs-live` — Assembled Site
+## `gh-pages` — Assembled Site
 
-`docs-live` is an **orphan branch** that contains only the assembled, ready-to-serve site. It is the single source used for every GitHub Pages deployment.
+`gh-pages` is an **orphan branch** that contains only the assembled, ready-to-serve site. It is the single source used for every GitHub Pages deployment.
 
 ### Root (main content)
 
-When a commit is pushed to `main`, `build-site.yml` overwrites the root of `docs-live` with the freshly built site — but it **preserves the `staging/` directory**:
+When a commit is pushed to `main`, `pages-staging-deploy.yml` overwrites the root of `gh-pages` with the freshly built site — but it **preserves the `staging/` directory**:
 
 ```bash
 find . -maxdepth 1 \
@@ -64,13 +64,13 @@ This means multiple PRs can have active staging previews at the same time withou
 
 ### Cleanup
 
-When a PR is closed, its `staging/{pr-number}/` directory is deleted from `docs-live` and Pages is re-deployed. The main site content is untouched.
+When a PR is closed, its `staging/{pr-number}/` directory is deleted from `gh-pages` and Pages is re-deployed. The main site content is untouched.
 
 ## Why Not Deploy Directly From `main`?
 
 Deploying from `main` directly (e.g., `actions/upload-pages-artifact` on the source checkout) would mean the live Pages site could only ever contain the full current state of main — no room for staging sub-directories.
 
-The `docs-live` branch acts as a **mutable staging area** that can hold both the latest main content and any number of PR previews simultaneously.
+The `gh-pages` branch acts as a **mutable staging area** that can hold both the latest main content and any number of PR previews simultaneously.
 
 ## Base Href Rewrites
 
@@ -86,6 +86,6 @@ Both the Blazor app and the Jekyll docs must know their deployment path at **bui
 
 ## `.nojekyll`
 
-A `.nojekyll` file is always present at the root of `docs-live`. This tells GitHub Pages **not** to run Jekyll on the branch content — the site is already pre-built. Without this file, GitHub Pages would ignore directories starting with `_` (like `_framework/` used by Blazor).
+A `.nojekyll` file is always present at the root of `gh-pages`. This tells GitHub Pages **not** to run Jekyll on the branch content — the site is already pre-built. Without this file, GitHub Pages would ignore directories starting with `_` (like `_framework/` used by Blazor).
 
 [← Back to Home](index)

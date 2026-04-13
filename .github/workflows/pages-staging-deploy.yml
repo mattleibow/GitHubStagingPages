@@ -1,11 +1,33 @@
 name: "Pages - Staging - Build and Deploy"
 
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║ TEMPLATE GUIDE                                                           ║
+# ║                                                                          ║
+# ║ This workflow builds a multi-section site (landing page + Jekyll docs    ║
+# ║ + Blazor WASM app), deploys it to a gh-pages branch, and supports        ║
+# ║ per-PR staging previews.                                                 ║
+# ║                                                                          ║
+# ║ When copying this workflow, look for comments tagged with:               ║
+# ║   [LANDING PAGE] — static landing page (site/ folder)                    ║
+# ║   [DOCS]         — Jekyll documentation (docs/ folder)                   ║
+# ║   [WASM APP]     — Blazor WebAssembly app (src/GreetingApp.Blazor)       ║
+# ║   [STAGING]      — PR staging preview support                            ║
+# ║   [PR COMMENT]   — bot comment with staging preview links                ║
+# ║   [CORE]         — always keep: required for the workflow to function    ║
+# ║                                                                          ║
+# ║ Remove entire tagged sections you don't need. For example, if you        ║
+# ║ don't have a Blazor app, remove all [WASM APP] sections.                 ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
 on:
+  # [CORE] Deploy when code lands on main
   push:
     branches: [ main ]
+  # [STAGING] Build and deploy a staging preview for every PR
   pull_request:
     branches: [ main ]
     types: [ opened, synchronize, reopened ]
+  # [CORE] Allow manual re-deploy; optionally target a specific PR number
   workflow_dispatch:
     inputs:
       pr_number:
@@ -19,23 +41,31 @@ on:
         default: false
         type: boolean
 
+# [CORE] Prevent duplicate builds for the same branch; cancel older PR runs
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-# Default to no permissions — each job declares only what it needs.
+# [CORE] Default to no permissions — each job declares only what it needs.
 permissions: {}
 
 env:
+  # [CORE] Name of the branch used to serve the assembled site
   PAGES_BRANCH: gh-pages
+  # [STAGING] Subdirectory in the pages branch where PR previews are stored
   STAGING_PATH: staging
+  # [CORE] Base path for the site — derived from the repo name automatically
   SITE_BASE_PATH: /${{ github.event.repository.name }}
+  # [CORE] Full base URL for the site — derived from the repo owner and name
   SITE_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+  # [CORE] Git identity used for automated commits to the pages branch
   GIT_COMMIT_EMAIL: action@github.com
   GIT_COMMIT_NAME: GitHub Action
 
 jobs:
-  # ── Build the complete site ───────────────────────────────────────────────
+  # ══════════════════════════════════════════════════════════════════════════
+  # BUILD — Assemble the complete site from all sections
+  # ══════════════════════════════════════════════════════════════════════════
   build:
     name: Build Site
     runs-on: ubuntu-latest
@@ -46,6 +76,8 @@ jobs:
       is_staging: ${{ steps.vars.outputs.is_staging }}
       pr_number: ${{ steps.vars.outputs.pr_number }}
     steps:
+      # [CORE] Determine whether this is a main deploy or a staging deploy,
+      # and compute the correct base paths for each site section.
       - name: Setup build variables
         id: vars
         env:
@@ -69,28 +101,39 @@ jobs:
               exit 1
             fi
             echo "artifact_name=staging-site-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            # [WASM APP] Base href for the Blazor app under the staging path
             echo "app_base_href=${SITE_BASE_PATH}/${STAGING_PATH}/${PR_NUMBER}/app/" >> $GITHUB_OUTPUT
+            # [DOCS] Base URL for Jekyll under the staging path
             echo "docs_base_url=${SITE_BASE_PATH}/${STAGING_PATH}/${PR_NUMBER}/docs" >> $GITHUB_OUTPUT
             echo "is_staging=true" >> $GITHUB_OUTPUT
             echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "source_label=PR #${PR_NUMBER}" >> $GITHUB_OUTPUT
           else
             echo "artifact_name=main-site" >> $GITHUB_OUTPUT
+            # [WASM APP] Base href for the Blazor app at the root
             echo "app_base_href=${SITE_BASE_PATH}/app/" >> $GITHUB_OUTPUT
+            # [DOCS] Base URL for Jekyll at the root
             echo "docs_base_url=${SITE_BASE_PATH}/docs" >> $GITHUB_OUTPUT
             echo "is_staging=false" >> $GITHUB_OUTPUT
             echo "pr_number=" >> $GITHUB_OUTPUT
             echo "source_label=main" >> $GITHUB_OUTPUT
           fi
 
+      # [CORE] Check out the source code
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ── .NET setup ────────────────────────────────────────────────────────
+      # [WASM APP] Required for building the Blazor WebAssembly app.
+      # REMOVE this step if you don't have a Blazor/WASM app.
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      # ── Ruby / Jekyll setup ───────────────────────────────────────────────
+      # [DOCS] Required for building the Jekyll documentation site.
+      # REMOVE this step if you don't have Jekyll docs.
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -99,6 +142,9 @@ jobs:
           working-directory: './docs'
 
       # ── Build Jekyll documentation ────────────────────────────────────────
+      # [DOCS] Builds the Jekyll site from the docs/ folder.
+      # The --baseurl flag ensures all links work at the correct deployment path.
+      # REMOVE this step if you don't have Jekyll docs.
       - name: Build Jekyll docs
         env:
           JEKYLL_ENV: production
@@ -108,9 +154,13 @@ jobs:
           bundle exec jekyll build --baseurl "$DOCS_BASE_URL"
 
       # ── Build Blazor WASM app ─────────────────────────────────────────────
+      # [WASM APP] Restore NuGet packages for the Blazor project.
+      # REMOVE this step if you don't have a Blazor/WASM app.
       - name: Restore .NET dependencies
         run: dotnet restore src/GreetingApp.Blazor/GreetingApp.Blazor.csproj
 
+      # [WASM APP] Publish the Blazor WASM app to a folder.
+      # REMOVE this step if you don't have a Blazor/WASM app.
       - name: Publish Blazor WASM app
         env:
           SOURCE_LABEL: ${{ steps.vars.outputs.source_label }}
@@ -121,7 +171,9 @@ jobs:
             -o output/app-publish \
             --nologo
 
-      # ── Assemble complete site ────────────────────────────────────────────
+      # ── Assemble the final site from all built sections ───────────────────
+      # [CORE] Combines all sections into a single site-out/ directory.
+      # Edit this step to add or remove sections based on what you kept above.
       - name: Assemble site
         env:
           APP_BASE_HREF: ${{ steps.vars.outputs.app_base_href }}
@@ -133,22 +185,31 @@ jobs:
 
           mkdir -p site-out
 
-          # Landing page → root
+          # [LANDING PAGE] Copy the static landing page files to the root.
+          # REMOVE these lines if you don't have a landing page, or replace
+          # with your own static files.
           cp site/index.html site-out/
           cp site/style.css site-out/
           cp site/404.html site-out/
+
+          # [CORE] Tells GitHub Pages not to run Jekyll on the deployed branch
+          # (needed so directories like _framework/ are served correctly).
           touch site-out/.nojekyll
 
-          # Inject build info into landing page footer
+          # [LANDING PAGE] Inject build info into the landing page footer.
+          # REMOVE if you removed the landing page above.
           sed -i "s|Built with ❤️ using .NET and GitHub Actions.|Built with ❤️ using .NET and GitHub Actions. <small>(${BUILD_FOOTER})</small>|" site-out/index.html
 
-          # Docs → /docs/
+          # [DOCS] Copy the built Jekyll site into the /docs/ subdirectory.
+          # REMOVE if you removed the Jekyll docs build above.
           cp -r docs/_site site-out/docs
 
-          # App → /app/
+          # [WASM APP] Copy the published Blazor app into the /app/ subdirectory.
+          # REMOVE if you removed the Blazor build above.
           cp -r output/app-publish/wwwroot site-out/app
 
-          # Rewrite Blazor app base href for deployment path
+          # [WASM APP] Rewrite the Blazor <base href> for the correct deployment path.
+          # REMOVE if you removed the Blazor build above.
           sed -i "s|<base href=\"/\" />|<base href=\"$APP_BASE_HREF\" />|g" site-out/app/index.html
 
           echo "=== Site layout ==="
@@ -156,6 +217,7 @@ jobs:
           echo "..."
           echo "Total files: $(find site-out -type f | wc -l)"
 
+      # [CORE] Upload the assembled site so the deploy job can use it
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
@@ -163,22 +225,26 @@ jobs:
           path: site-out
           retention-days: 1
 
-  # ── Deploy to pages branch ───────────────────────────────────────────────
+  # ══════════════════════════════════════════════════════════════════════════
+  # DEPLOY — Push the built site to the pages branch
+  # ══════════════════════════════════════════════════════════════════════════
   deploy:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
-    # Serialize deploys: main deploys serialize together, each PR gets its
-    # own group. cancel-in-progress ensures newer commits win over older ones.
+    # [CORE] Serialize deploys: main deploys serialize together, each PR gets
+    # its own group. cancel-in-progress ensures newer commits win over older ones.
     concurrency:
       group: "docs-deploy-${{ needs.build.outputs.is_staging == 'true' && format('pr-{0}', needs.build.outputs.pr_number) || 'main' }}"
       cancel-in-progress: true
+    # [CORE] Skip deploy on dry runs and fork PRs (forks can't push to this repo)
     if: |
       !inputs.dry_run &&
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     permissions:
       contents: write
     steps:
+      # [CORE] Check out the pages branch (or create it if this is the first deploy)
       - name: Checkout pages branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -202,12 +268,16 @@ jobs:
             git push origin "$PAGES_BRANCH"
           fi
 
+      # [CORE] Download the assembled site artifact from the build job
       - name: Download site artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.artifact_name }}
           path: /tmp/site-temp
 
+      # [CORE] Deploy to the root of the pages branch (runs on pushes to main).
+      # Replaces all root content while preserving the staging/ directory so
+      # existing PR previews are not destroyed.
       - name: Deploy main site content
         if: needs.build.outputs.is_staging == 'false'
         run: |
@@ -232,6 +302,8 @@ jobs:
             echo "No changes to commit"
           fi
 
+      # [STAGING] Deploy to staging/{pr-number}/ for PR previews.
+      # REMOVE this step if you don't want PR staging previews.
       - name: Deploy staging site content
         if: needs.build.outputs.is_staging == 'true'
         env:
@@ -260,7 +332,12 @@ jobs:
             echo "No changes to commit"
           fi
 
-  # ── Comment on PR with preview URL ───────────────────────────────────────
+  # ══════════════════════════════════════════════════════════════════════════
+  # PR COMMENT — Post staging preview links on the pull request
+  # ══════════════════════════════════════════════════════════════════════════
+  # [PR COMMENT] Posts (or updates) a bot comment on the PR with direct links
+  # to the staging preview. REMOVE this entire job if you removed staging
+  # support or don't want automatic PR comments.
   comment:
     name: Comment on PR
     needs: [build, deploy]
@@ -272,6 +349,9 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      # [PR COMMENT] Create or update the bot comment with staging preview links.
+      # Edit the URLs below to match the sections you kept (remove docs/app
+      # links if you removed those sections).
       - name: Comment on PR
         uses: actions/github-script@v7
         with:
@@ -279,7 +359,9 @@ jobs:
             const prNumber = ${{ needs.build.outputs.pr_number }};
             const stagingBase = `${process.env.SITE_BASE_URL}/${process.env.STAGING_PATH}/${prNumber}`;
             const stagingUrl = `${stagingBase}/`;
+            // [DOCS] Remove the next line if you removed the Jekyll docs section
             const docsUrl = `${stagingBase}/docs/`;
+            // [WASM APP] Remove the next line if you removed the Blazor app section
             const appUrl = `${stagingBase}/app/`;
 
             // Hidden marker to uniquely identify this workflow's comment
@@ -292,7 +374,9 @@ jobs:
               'This PR has been deployed to a staging environment:',
               '',
               `🔗 **[View Staging Site](${stagingUrl})**`,
+              // [DOCS] Remove the next line if you removed the Jekyll docs section
               `📖 **[View Staging Docs](${docsUrl})**`,
+              // [WASM APP] Remove the next line if you removed the Blazor app section
               `⚡ **[View Staging App](${appUrl})**`,
               '',
               'This preview is updated automatically when you push new commits.',

@@ -32,7 +32,7 @@ The pattern shown here gives you:
 - [Quick Start](quickstart) — Get up and running in minutes
 - [Repository Setup](setup) — Settings and permissions required
 - [Workflows Reference](workflows) — How the CI/CD workflows work
-- [Branch Strategy](branching) — How `main`, `docs-live`, and `staging/` fit together
+- [Branch Strategy](branching) — How `main`, `gh-pages`, and `staging/` fit together
 
 ---
 
