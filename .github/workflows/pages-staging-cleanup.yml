@@ -16,6 +16,7 @@ permissions: {}
 
 env:
   PAGES_BRANCH: gh-pages
+  STAGING_PATH: staging
   GIT_COMMIT_EMAIL: action@github.com
   GIT_COMMIT_NAME: GitHub Action
 
@@ -58,19 +59,19 @@ jobs:
             exit 0
           fi
 
-          if [ -d "staging/$PR_NUMBER" ]; then
-            rm -rf staging/$PR_NUMBER
+          if [ -d "$STAGING_PATH/$PR_NUMBER" ]; then
+            rm -rf "$STAGING_PATH/$PR_NUMBER"
             git config --local user.email "$GIT_COMMIT_EMAIL"
             git config --local user.name "$GIT_COMMIT_NAME"
             git add -A
             if ! git diff --cached --quiet; then
               git commit -m "Remove staging site for PR #$PR_NUMBER"
               git push origin "$PAGES_BRANCH"
-              echo "Removed staging directory for PR #$PR_NUMBER"
+              echo "Removed $STAGING_PATH directory for PR #$PR_NUMBER"
             else
               echo "No changes to commit for PR #$PR_NUMBER"
             fi
           else
-            echo "No staging directory found for PR #$PR_NUMBER"
+            echo "No $STAGING_PATH directory found for PR #$PR_NUMBER"
           fi
 

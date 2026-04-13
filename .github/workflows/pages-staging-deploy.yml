@@ -28,8 +28,9 @@ permissions: {}
 
 env:
   PAGES_BRANCH: gh-pages
-  SITE_BASE_PATH: /GitHubStagingPages
-  SITE_BASE_URL: https://mattleibow.github.io/GitHubStagingPages
+  STAGING_PATH: staging
+  SITE_BASE_PATH: /${{ github.event.repository.name }}
+  SITE_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
   GIT_COMMIT_EMAIL: action@github.com
   GIT_COMMIT_NAME: GitHub Action
 
@@ -68,8 +69,8 @@ jobs:
               exit 1
             fi
             echo "artifact_name=staging-site-${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "app_base_href=${SITE_BASE_PATH}/staging/${PR_NUMBER}/app/" >> $GITHUB_OUTPUT
-            echo "docs_base_url=${SITE_BASE_PATH}/staging/${PR_NUMBER}/docs" >> $GITHUB_OUTPUT
+            echo "app_base_href=${SITE_BASE_PATH}/${STAGING_PATH}/${PR_NUMBER}/app/" >> $GITHUB_OUTPUT
+            echo "docs_base_url=${SITE_BASE_PATH}/${STAGING_PATH}/${PR_NUMBER}/docs" >> $GITHUB_OUTPUT
             echo "is_staging=true" >> $GITHUB_OUTPUT
             echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "source_label=PR #${PR_NUMBER}" >> $GITHUB_OUTPUT
@@ -210,9 +211,9 @@ jobs:
       - name: Deploy main site content
         if: needs.build.outputs.is_staging == 'false'
         run: |
-          # Remove everything except staging/ and .git/
+          # Remove everything except staging directory and .git/
           find . -maxdepth 1 \
-              -not -name 'staging' \
+              -not -name "$STAGING_PATH" \
               -not -name '.git' \
               -not -name '.' \
               -not -name '..' \
@@ -243,15 +244,15 @@ jobs:
           fi
 
           # Recreate the staging directory to ensure no stale files
-          rm -rf "staging/$PR_NUMBER"
-          mkdir -p "staging/$PR_NUMBER"
-          cp -r /tmp/site-temp/. "staging/$PR_NUMBER/"
+          rm -rf "$STAGING_PATH/$PR_NUMBER"
+          mkdir -p "$STAGING_PATH/$PR_NUMBER"
+          cp -r /tmp/site-temp/. "$STAGING_PATH/$PR_NUMBER/"
           rm -rf /tmp/site-temp
 
           # Ensure .nojekyll exists at root so _framework is served
           touch .nojekyll
 
-          git add .nojekyll "staging/$PR_NUMBER"
+          git add .nojekyll "$STAGING_PATH/$PR_NUMBER"
           if ! git diff --cached --quiet; then
             git commit -m "Deploy staging site for PR #$PR_NUMBER"
             git push origin "$PAGES_BRANCH"
@@ -276,7 +277,7 @@ jobs:
         with:
           script: |
             const prNumber = ${{ needs.build.outputs.pr_number }};
-            const stagingBase = `${process.env.SITE_BASE_URL}/staging/${prNumber}`;
+            const stagingBase = `${process.env.SITE_BASE_URL}/${process.env.STAGING_PATH}/${prNumber}`;
             const stagingUrl = `${stagingBase}/`;
             const docsUrl = `${stagingBase}/docs/`;
             const appUrl = `${stagingBase}/app/`;
