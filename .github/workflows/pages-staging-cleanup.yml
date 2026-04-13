@@ -16,6 +16,8 @@ permissions: {}
 
 env:
   PAGES_BRANCH: gh-pages
+  GIT_COMMIT_EMAIL: action@github.com
+  GIT_COMMIT_NAME: GitHub Action
 
 # Each PR cleanup gets its own group, matching the deploy group for the same PR.
 concurrency:
@@ -58,8 +60,8 @@ jobs:
 
           if [ -d "staging/$PR_NUMBER" ]; then
             rm -rf staging/$PR_NUMBER
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
+            git config --local user.email "$GIT_COMMIT_EMAIL"
+            git config --local user.name "$GIT_COMMIT_NAME"
             git add -A
             if ! git diff --cached --quiet; then
               git commit -m "Remove staging site for PR #$PR_NUMBER"
