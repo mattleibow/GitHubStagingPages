@@ -1,6 +1,19 @@
 name: "App - Build and Test"
 
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║ TEMPLATE GUIDE                                                         ║
+# ║                                                                        ║
+# ║ This workflow builds and tests the .NET console application.            ║
+# ║ It is independent of the Pages deployment workflows.                   ║
+# ║                                                                        ║
+# ║ KEEP this workflow if you have a .NET app to build and test.           ║
+# ║ REMOVE this entire file if you don't have a .NET console app.          ║
+# ║ Replace with your own CI workflow if your project uses a different     ║
+# ║ language or framework.                                                 ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
 on:
+  # Run CI on pushes to main and pull requests against main
   push:
     branches: [ main ]
   pull_request:
@@ -16,21 +29,27 @@ jobs:
       contents: read
 
     steps:
+    # Check out the source code
     - uses: actions/checkout@v4
 
+    # Install the .NET SDK — update the version to match your project
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
+    # Restore NuGet packages for the solution
     - name: Restore dependencies
       run: dotnet restore
 
+    # Compile the entire solution
     - name: Build
       run: dotnet build --no-restore
 
+    # Smoke-test: run the console app with default arguments
     - name: Run app (default greeting)
       run: dotnet run --project src/GreetingApp --no-build
 
+    # Smoke-test: run the console app with a custom argument
     - name: Run app (with name)
       run: dotnet run --project src/GreetingApp --no-build -- "GitHub Actions"
