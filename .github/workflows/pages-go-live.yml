@@ -3,7 +3,7 @@ name: "Pages - Go Live"
 on:
   workflow_run:
     workflows:
-      - "Pages - Build and Deploy"
+      - "Pages - Staging - Build and Deploy"
       - "Pages - Staging - Cleanup"
     types:
       - completed
