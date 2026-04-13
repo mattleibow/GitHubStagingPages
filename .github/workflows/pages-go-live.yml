@@ -8,15 +8,12 @@ on:
     types:
       - completed
   workflow_dispatch:
-    inputs:
-      pages_branch:
-        description: 'Branch used to store the deployed pages content'
-        required: false
-        default: 'gh-pages'
-        type: string
 
 # Default to no permissions — each job declares only what it needs.
 permissions: {}
+
+env:
+  PAGES_BRANCH: gh-pages
 
 # Ensure go-live runs one at a time (latest wins)
 concurrency:
@@ -41,7 +38,7 @@ jobs:
       - name: Checkout pages branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.pages_branch || 'gh-pages' }}
+          ref: ${{ env.PAGES_BRANCH }}
 
       - name: Remove .git directory
         run: rm -rf .git

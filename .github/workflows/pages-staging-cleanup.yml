@@ -10,14 +10,12 @@ on:
         description: 'PR number to clean up'
         required: true
         type: string
-      pages_branch:
-        description: 'Branch used to store the deployed pages content'
-        required: false
-        default: 'gh-pages'
-        type: string
 
 # Default to no permissions — each job declares only what it needs.
 permissions: {}
+
+env:
+  PAGES_BRANCH: gh-pages
 
 # Each PR cleanup gets its own group, matching the deploy group for the same PR.
 concurrency:
@@ -41,7 +39,6 @@ jobs:
       - name: Remove staging directory from pages branch
         env:
           PR_NUMBER: ${{ github.event.number || inputs.pr_number }}
-          PAGES_BRANCH: ${{ inputs.pages_branch || 'gh-pages' }}
         run: |
           # Validate PR_NUMBER is a positive integer before using in paths
           if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then

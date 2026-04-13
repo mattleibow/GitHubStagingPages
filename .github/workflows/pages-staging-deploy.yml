@@ -18,11 +18,6 @@ on:
         required: false
         default: false
         type: boolean
-      pages_branch:
-        description: 'Branch used to store the deployed pages content'
-        required: false
-        default: 'gh-pages'
-        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,6 +25,9 @@ concurrency:
 
 # Default to no permissions — each job declares only what it needs.
 permissions: {}
+
+env:
+  PAGES_BRANCH: gh-pages
 
 jobs:
   # ── Build the complete site ───────────────────────────────────────────────
@@ -179,7 +177,6 @@ jobs:
       - name: Checkout pages branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PAGES_BRANCH: ${{ inputs.pages_branch || 'gh-pages' }}
         run: |
           REMOTE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           git init .
@@ -208,8 +205,6 @@ jobs:
 
       - name: Deploy main site content
         if: needs.build.outputs.is_staging == 'false'
-        env:
-          PAGES_BRANCH: ${{ inputs.pages_branch || 'gh-pages' }}
         run: |
           # Remove everything except staging/ and .git/
           find . -maxdepth 1 \
@@ -236,7 +231,6 @@ jobs:
         if: needs.build.outputs.is_staging == 'true'
         env:
           PR_NUMBER: ${{ needs.build.outputs.pr_number }}
-          PAGES_BRANCH: ${{ inputs.pages_branch || 'gh-pages' }}
         run: |
           # Validate PR_NUMBER is a positive integer before using in paths
           if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
